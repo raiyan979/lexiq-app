@@ -28,6 +28,22 @@ strict advertising rules. We **cannot** drop in a generic ad SDK.
   completed sessions — never during a lesson/exercise, never where a child can
   mis-tap. Play Families has explicit placement rules; follow them.
 
+### Format & cadence (user's vision, 2026-07-29)
+
+- **Network availability is the gate: ads only show when the device is online**
+  (detected at runtime — e.g. `navigator.onLine` plus a lightweight reachability
+  check). Offline → never request or show an ad. Since the core app is offline,
+  most usage is ad-free by default; ads only surface during online sessions
+  (AI-helper use being one such case, but connectivity is the sole trigger).
+- Formats: a **small banner** (e.g. top, unobtrusive) and/or a **short (~5s)**
+  interstitial at **low frequency**.
+- **Anchor frequency to events, not a wall-clock timer.** Prefer "after every
+  ~2 lessons" or on a session-complete screen. Avoid "an ad every N minutes" —
+  a timer can interrupt a child mid-lesson, which feels bad and risks violating
+  Play Families placement rules. Same minimal footprint, no interruptions.
+- Short video ads (5s bumper) must come from the certified kid-safe network,
+  muted/appropriate by default.
+
 ## Technical implications
 
 - **Network access:** the app is fully offline today. Add the Android INTERNET
