@@ -40,6 +40,11 @@ const SCHEMA_VERSION = 1;
 // their FSRS/progress rows. This is written into the seed's `settings`.
 const CONTENT_VERSION = 1;
 const EXERCISE_SEED = 20240501; // fixed → reproducible generated exercises
+// Cap the Tatoeba library pool so the mobile APK stays small. The pool only
+// powers Library search (core lessons/vocab are separate), so a curated subset
+// is plenty. We keep the most learner-accessible sentences (lowest difficulty),
+// deterministically, so the build stays reproducible.
+const POOL_LIMIT = 3000;
 
 function jsonOrNull(value: string[] | null): string | null {
   return value === null ? null : JSON.stringify(value);
@@ -259,7 +264,12 @@ function main(): void {
 
   // Library pool: the ingested Tatoeba sentences (unit_id NULL). These power the
   // Library search and extra practice. TODO: assign a themed subset to units.
-  const pool = JSON.parse(readFileSync(POOL_FILE, 'utf8')) as PoolSentence[];
+  const poolAll = JSON.parse(readFileSync(POOL_FILE, 'utf8')) as PoolSentence[];
+  // Keep the most accessible subset (lowest difficulty), tie-broken by tatoeba_id
+  // for a stable, reproducible selection.
+  const pool = [...poolAll]
+    .sort((a, b) => a.difficulty_score - b.difficulty_score || a.tatoeba_id - b.tatoeba_id)
+    .slice(0, POOL_LIMIT);
   for (const s of pool) {
     const poolId = claimId(sentenceIds, hashId(`pool:${s.tatoeba_id}`), `pool ${s.tatoeba_id}`);
     insSentence.run(
