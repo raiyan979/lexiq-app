@@ -76,6 +76,12 @@
   .sidebar.collapsed {
     width: var(--sidebar-width-collapsed);
   }
+  /* On phones the bottom tab bar takes over; hide the sidebar entirely. */
+  @media (max-width: 640px) {
+    .sidebar {
+      display: none;
+    }
+  }
 
   .brand {
     display: flex;

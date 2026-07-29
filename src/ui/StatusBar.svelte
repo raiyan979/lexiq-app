@@ -59,4 +59,22 @@
   .sep {
     opacity: 0.5;
   }
+  /* Phones: clear the notch, tighten spacing, and shrink the status line so the
+   * full streak/due/new/XP figures still fit a ~360px width. */
+  @media (max-width: 640px) {
+    .statusbar {
+      flex: 0 0 auto;
+      height: auto;
+      min-height: var(--statusbar-height);
+      padding: 0 var(--space-4);
+      padding-top: env(safe-area-inset-top, 0px);
+    }
+    .view-title {
+      font-size: 14px;
+    }
+    .status {
+      font-size: 11px;
+      gap: var(--space-1);
+    }
+  }
 </style>

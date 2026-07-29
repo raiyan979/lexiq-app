@@ -399,6 +399,9 @@
 
   /* Responsive: stack heroes and wrap tiles on narrow windows */
   @media (max-width: 720px) {
+    .view {
+      padding: var(--space-5) var(--space-4);
+    }
     .hero {
       grid-template-columns: 1fr;
     }

@@ -1,5 +1,6 @@
 <script lang="ts">
   import Sidebar from './Sidebar.svelte';
+  import BottomNav from './BottomNav.svelte';
   import StatusBar from './StatusBar.svelte';
   import { routes } from './routes';
   import { router } from './router.svelte';
@@ -38,6 +39,7 @@
         <RouteComponent />
       {/key}
     </main>
+    <BottomNav />
   </div>
 </div>
 
