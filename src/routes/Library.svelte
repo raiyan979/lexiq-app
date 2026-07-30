@@ -119,12 +119,12 @@
       <ul class="list">
         {#each filteredVocab as v (v.id)}
           <li class="row">
-            <div class="main">
-              <span class="fr gender-{v.gender}">
+            {#if v.audioPath}<AudioButton src={v.audioPath} label="Play" />{/if}
+            <div class="term">
+              <span class="fr">
                 {#if GENDER_ARTICLE[v.gender]}<span class="art">{GENDER_ARTICLE[v.gender]}</span>{/if}
                 {v.fr}
               </span>
-              {#if v.audioPath}<AudioButton src={v.audioPath} label="Play" />{/if}
               {#if v.ipa}<span class="ipa mono">/{v.ipa}/</span>{/if}
             </div>
             <div class="meta">
@@ -147,9 +147,9 @@
       <ul class="list">
         {#each sentences as s (s.id)}
           <li class="row sentence">
-            <div class="main">
+            {#if s.audioPath}<AudioButton src={s.audioPath} label="Play" />{/if}
+            <div class="term">
               <span class="fr">{s.fr}</span>
-              {#if s.audioPath}<AudioButton src={s.audioPath} label="Play" />{/if}
             </div>
             <div class="meta">
               <span class="en">{s.en}</span>
@@ -251,6 +251,11 @@
   }
   .list {
     list-style: none;
+    /* Reset the browser's default <ul> padding/margin — otherwise the 40px
+     * left padding-inline-start exposes the list's tinted background as a
+     * stray coloured gutter down the left edge. */
+    margin: 0;
+    padding: 0;
     display: flex;
     flex-direction: column;
     gap: 1px;
@@ -262,20 +267,20 @@
   .row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
+    gap: var(--space-3);
     padding: var(--space-3) var(--space-4);
     background: var(--surface);
   }
   .row.sentence {
     align-items: flex-start;
   }
-  .main {
+  /* Word (or sentence) + its IPA, stacked; takes the free space in the row. */
+  .term {
     display: flex;
-    align-items: center;
-    gap: var(--space-2);
+    flex-direction: column;
+    gap: 2px;
     min-width: 0;
-    flex-wrap: wrap;
+    flex: 1;
   }
   .fr {
     font-weight: 600;
@@ -286,12 +291,6 @@
     color: var(--text-dim);
     font-weight: 400;
     margin-right: 2px;
-  }
-  .gender-m {
-    color: var(--gender-m, var(--text));
-  }
-  .gender-f {
-    color: var(--gender-f, var(--text));
   }
   .ipa {
     color: var(--text-dim);
@@ -307,6 +306,32 @@
     color: var(--text-dim);
     font-size: 14px;
     text-align: right;
+  }
+  /* Phones: stack the meaning above its mastery badge, right-aligned, so a long
+   * translation doesn't crush the French term into an awkward wrap. */
+  @media (max-width: 640px) {
+    .meta {
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+    /* Sentences: the French term is long, so if the English translation sits
+     * beside it the French column is starved and wraps one word per line.
+     * Let the row wrap — French fills the top line, English + badge drop onto
+     * their own full-width line below. Vocab rows keep the side-by-side layout. */
+    .row.sentence {
+      flex-wrap: wrap;
+    }
+    .row.sentence .meta {
+      flex-basis: 100%;
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-start;
+      gap: var(--space-3);
+    }
+    .row.sentence .en {
+      text-align: left;
+    }
   }
   .badge {
     font-size: 10px;

@@ -1,42 +1,33 @@
 /*
- * Audio playback. Clips are shipped as bundled resources (resources/audio/*.mp3)
- * and served to the WebView through Tauri's asset protocol. A DB `audio_path`
- * like "audio/<hash>.mp3" resolves to <resourceDir>/resources/audio/<hash>.mp3.
+ * Audio playback. Clips ship as frontend static assets (public/audio/*.mp3),
+ * so they are served from the app's own origin on every platform — desktop
+ * WebView and the Android WebView alike. A DB `audio_path` like
+ * "audio/<hash>.mp3" therefore resolves to the same-origin URL "/audio/<hash>.mp3".
  *
- * Everything degrades gracefully: a null path, a missing file, or a non-Tauri
- * context (e.g. a browser dev preview) simply plays nothing.
+ * This deliberately avoids Tauri's resource dir + asset protocol: on Android the
+ * bundled resources live inside the APK (not on the filesystem), so resolveResource
+ * + convertFileSrc produce an unreachable path and nothing plays. Serving the
+ * clips as frontend assets sidesteps that entirely.
+ *
+ * Everything degrades gracefully: a null path, a missing file, or a disabled
+ * audio pref simply plays nothing.
  */
 
-import { convertFileSrc } from '@tauri-apps/api/core';
-import { resolveResource } from '@tauri-apps/api/path';
 import { prefs } from './prefs.svelte';
 
-const srcCache = new Map<string, string>();
 let current: HTMLAudioElement | null = null;
 
-async function resolveSrc(audioPath: string): Promise<string | null> {
-  const cached = srcCache.get(audioPath);
-  if (cached !== undefined) return cached;
-  try {
-    const abs = await resolveResource(`resources/${audioPath}`);
-    const src = convertFileSrc(abs);
-    srcCache.set(audioPath, src);
-    return src;
-  } catch {
-    return null; // not running under Tauri, or path unavailable
-  }
-}
-
-/** Play a clip by its DB audio_path. No-op on null/missing/unavailable. */
+/** Play a clip by its DB audio_path. No-op on null/disabled. */
 export async function playClip(audioPath: string | null): Promise<void> {
   if (audioPath === null || !prefs.audioEnabled) return;
-  const src = await resolveSrc(audioPath);
-  if (src === null) return;
+  // audio_path is app-root-relative ("audio/<hash>.mp3"); the leading slash
+  // anchors it to the origin regardless of the current hash route.
+  const src = `/${audioPath}`;
   current?.pause();
   current = new Audio(src);
   try {
     await current.play();
   } catch {
-    // ignore autoplay/interruption rejections
+    // ignore autoplay/interruption/missing-file rejections
   }
 }

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { marked } from 'marked';
+  import DOMPurify from 'dompurify';
 
   interface Props {
     /** Trusted, build-time-authored markdown (from the curriculum seed). */
@@ -7,10 +8,13 @@
   }
   let { source }: Props = $props();
 
-  // Curriculum content is authored by us and compiled into the seed DB — there
-  // is no user-generated input here, so rendering it as HTML is safe. Restrict
-  // to the inline+block subset the lessons actually use.
-  const html = $derived(marked.parse(source, { async: false, gfm: true, breaks: false }));
+  // Curriculum content is authored by us and compiled into the seed DB, so it's
+  // trusted today. We still sanitize the rendered HTML with DOMPurify as
+  // defence-in-depth: it strips scripts/event-handlers/unsafe URLs, and keeps
+  // this component safe if it is ever pointed at untrusted input (e.g. the
+  // planned in-context AI helper). DOMPurify's default allow-list covers the
+  // inline+block subset the lessons use (headings, p, ul/li, strong/em, code, tables).
+  const html = $derived(DOMPurify.sanitize(marked.parse(source, { async: false, gfm: true, breaks: false })));
 </script>
 
 <!-- eslint-disable-next-line svelte/no-at-html-tags -- trusted curriculum content, see note above -->

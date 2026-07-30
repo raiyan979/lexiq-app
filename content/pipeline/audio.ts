@@ -19,7 +19,9 @@ import { curriculum } from '../curriculum/index';
 import { audioBasename, AUDIO_SUBDIR } from './audio-path';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const OUT_DIR = join(HERE, '..', '..', 'src-tauri', 'resources', AUDIO_SUBDIR);
+// Clips are served as frontend static assets (public/), so they resolve to a
+// same-origin URL on Android as well as desktop. See src/ui/audio.ts.
+const OUT_DIR = join(HERE, '..', '..', 'public', AUDIO_SUBDIR);
 const VOICE = 'fr-FR-DeniseNeural';
 const CONCURRENCY = 6;
 

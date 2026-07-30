@@ -43,6 +43,7 @@
     "@fontsource/plus-jakarta-sans": "^5.3.0",
     "@tauri-apps/api": "^2.11.1",
     "@tauri-apps/plugin-sql": "^2.4.0",
+    "dompurify": "^3.4.12",
     "marked": "^18.0.7",
     "ts-fsrs": "^5.4.1"
   }

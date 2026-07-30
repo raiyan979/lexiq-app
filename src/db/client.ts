@@ -48,7 +48,31 @@ async function load(): Promise<Database> {
   }
   await runMigrations(db);
   await maybeSyncContent(db);
+  await ensureFirstUnitUnlocked(db);
   return db;
+}
+
+/**
+ * Self-heal the unlock invariant: the first unit in curriculum order must always
+ * be reachable. Fires ONLY when every unit is locked — the corrupt state a past
+ * buggy seed could leave behind, and one that neither the first-launch seed copy
+ * (new installs only) nor content-sync (version-gated + INSERT OR IGNORE) can
+ * repair on an existing database. A real user always has at least one
+ * available/in_progress/completed unit, so this is a no-op for them and safe to
+ * run every launch. Removes the need to uninstall to recover.
+ */
+async function ensureFirstUnitUnlocked(db: Database): Promise<void> {
+  await db.execute(
+    `UPDATE unit_progress SET status = 'available'
+       WHERE unit_id = (
+               SELECT id FROM units
+               ORDER BY CASE level WHEN 'A1' THEN 0 WHEN 'A2' THEN 1 ELSE 2 END,
+                        order_index ASC
+               LIMIT 1)
+         AND NOT EXISTS (
+               SELECT 1 FROM unit_progress
+                WHERE status IN ('available', 'in_progress', 'completed'))`,
+  );
 }
 
 /**

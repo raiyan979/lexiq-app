@@ -62,19 +62,24 @@
   /* Phones: clear the notch, tighten spacing, and shrink the status line so the
    * full streak/due/new/XP figures still fit a ~360px width. */
   @media (max-width: 640px) {
+    /* Stack the title over the status line: on a phone width the two don't fit
+     * comfortably side by side, and cramming them reads as cluttered. */
     .statusbar {
       flex: 0 0 auto;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 3px;
       height: auto;
-      min-height: var(--statusbar-height);
-      padding: 0 var(--space-4);
-      padding-top: env(safe-area-inset-top, 0px);
+      padding: var(--space-3) var(--space-4);
+      padding-top: calc(var(--space-3) + env(safe-area-inset-top, 0px));
     }
     .view-title {
-      font-size: 14px;
+      font-size: 18px;
     }
     .status {
-      font-size: 11px;
-      gap: var(--space-1);
+      font-size: 13px;
+      gap: 8px;
     }
   }
 </style>

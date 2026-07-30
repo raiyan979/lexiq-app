@@ -1,0 +1,40 @@
+# cargo-audit configuration (read from .cargo/audit.toml by `cargo audit`).
+#
+# Every advisory below was reviewed and accepted for this project. They fall
+# into two groups, neither reachable in a shipped build:
+#
+#  1. rsa (RUSTSEC-2023-0071, "Marvin Attack", no upstream fix) is pulled in
+#     only by sqlx's OPTIONAL MySQL backend. This app uses SQLite exclusively
+#     (tauri-plugin-sql features = ["sqlite"]); `cargo tree -e normal -i rsa`
+#     prints nothing, i.e. rsa is not in the compiled graph. It exists only as a
+#     lockfile entry.
+#
+#  2. The rest are gtk-rs / glib / unic / proc-macro-error style crates flagged
+#     "unmaintained" or "unsound". They belong to the webkit2gtk Linux-desktop
+#     backend and other build-time-only paths, and are not compiled on our
+#     shipping targets (Windows WebView2 + Android WebView). All are transitive
+#     via Tauri with no direct upgrade available.
+#
+# Re-review this list whenever dependencies are bumped.
+
+[advisories]
+ignore = [
+  "RUSTSEC-2023-0071",
+  "RUSTSEC-2024-0370",
+  "RUSTSEC-2024-0411",
+  "RUSTSEC-2024-0412",
+  "RUSTSEC-2024-0413",
+  "RUSTSEC-2024-0414",
+  "RUSTSEC-2024-0415",
+  "RUSTSEC-2024-0416",
+  "RUSTSEC-2024-0417",
+  "RUSTSEC-2024-0418",
+  "RUSTSEC-2024-0419",
+  "RUSTSEC-2024-0420",
+  "RUSTSEC-2024-0429",
+  "RUSTSEC-2025-0075",
+  "RUSTSEC-2025-0080",
+  "RUSTSEC-2025-0081",
+  "RUSTSEC-2025-0098",
+  "RUSTSEC-2025-0100",
+]

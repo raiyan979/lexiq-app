@@ -30,7 +30,9 @@ const MIGRATION = join(HERE, '..', 'src', 'db', 'migrations', '0001_init.sql');
 const FREQ_FILE = join(HERE, '.cache', 'fr_50k.txt');
 const POOL_FILE = join(HERE, '.cache', 'sentence_pool.json');
 const RESOURCES = join(HERE, '..', 'src-tauri', 'resources');
-const AUDIO_DIR = join(RESOURCES, AUDIO_SUBDIR);
+// Audio clips ship as frontend static assets (served same-origin on Android too),
+// so they live under public/, not src-tauri/resources/. See src/ui/audio.ts.
+const AUDIO_DIR = join(HERE, '..', 'public', AUDIO_SUBDIR);
 const OUT_DB = join(RESOURCES, 'lexiq.db');
 
 const SCHEMA_VERSION = 1;
@@ -158,9 +160,10 @@ function main(): void {
     );
     unitCount++;
 
-    // First unit of A1 is available; everything else starts locked (unlock
-    // logic in the app flips these as the user completes units).
-    const status = unitId === 1 ? 'available' : 'locked';
+    // First unit of A1 is available; everything else starts locked (the app's
+    // unlock-on-completion logic flips these as the user finishes units). Keyed
+    // on curriculum position, not id, since ids are now stable hashes.
+    const status = unit.level === 'A1' && orderIndex === 0 ? 'available' : 'locked';
     insProgress.run(unitId, status);
 
     // Lessons.

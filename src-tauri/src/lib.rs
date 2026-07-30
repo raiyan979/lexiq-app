@@ -1,46 +1,38 @@
 use std::fs;
 
-use tauri::path::BaseDirectory;
 use tauri::{App, Manager};
 
-/// Seed + content-sync setup. The app ships a pre-built `lexiq.db` (curriculum +
-/// cards) as a bundled resource.
+/// The pre-built seed DB (curriculum + cards), embedded in the binary at compile
+/// time. Embedding is what makes first-launch seeding work identically on desktop
+/// AND Android: on Android a bundled *resource file* lives inside the APK and
+/// can't be read via std::fs, so we ship the bytes in the binary instead. The
+/// seed is small (~0.6 MB after the pool trim), so this is cheap.
+static SEED_DB: &[u8] = include_bytes!("../resources/lexiq.db");
+
+/// Seed + content-sync setup, writing the embedded seed into the app config dir.
 ///
-/// * `lexiq.db` — the user's working database. Copied from the bundled seed on
-///   the *first* run only; left untouched afterwards so progress is preserved.
-/// * `lexiq.seed.db` — a pristine copy of the bundled seed, refreshed on *every*
-///   run. The frontend opens it read-only and diffs its `content_version`
-///   against the working DB to upgrade content in place (src/db/content-sync.ts).
+/// * `lexiq.db` — the user's working database. Written on the *first* run only;
+///   left untouched afterwards so progress is preserved.
+/// * `lexiq.seed.db` — a pristine copy of the seed, refreshed on *every* run. The
+///   frontend opens it read-only and diffs its `content_version` against the
+///   working DB to upgrade content in place (src/db/content-sync.ts).
 ///
-/// Both live in the app config dir, where the SQL plugin resolves
-/// `sqlite:<name>` and can open them read-write.
+/// Both live in the app config dir, where the SQL plugin resolves `sqlite:<name>`
+/// and can open them read-write.
 fn seed_database(app: &App) -> Result<(), Box<dyn std::error::Error>> {
     let config_dir = app.path().app_config_dir()?;
-
-    let bundled = app
-        .path()
-        .resolve("resources/lexiq.db", BaseDirectory::Resource)?;
-    if !bundled.exists() {
-        return Err(format!(
-            "Seed database missing from the app bundle (expected at {}). \
-             Run `npm run build:content` before building the app.",
-            bundled.display()
-        )
-        .into());
-    }
-
     fs::create_dir_all(&config_dir)?;
 
     // First launch only: seed the user's working DB.
     let target = config_dir.join("lexiq.db");
     if !target.exists() {
-        fs::copy(&bundled, &target)?;
+        fs::write(&target, SEED_DB)?;
     }
 
     // Every launch: refresh the read-only seed sidecar the content-sync diffs
     // against, clearing any stale WAL/SHM so the fresh copy opens cleanly.
     let seed_side = config_dir.join("lexiq.seed.db");
-    fs::copy(&bundled, &seed_side)?;
+    fs::write(&seed_side, SEED_DB)?;
     for suffix in ["-wal", "-shm"] {
         let stale = config_dir.join(format!("lexiq.seed.db{suffix}"));
         if stale.exists() {

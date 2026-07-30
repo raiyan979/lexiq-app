@@ -33,7 +33,7 @@
       aria-current={active ? 'page' : undefined}
       onclick={(e) => go(e, item.path)}
     >
-      <span class="tab-icon"><Icon name={iconFor(item.label)} /></span>
+      <span class="tab-icon"><Icon name={iconFor(item.label)} size={26} /></span>
       <span class="tab-label">{item.label}</span>
     </a>
   {/each}
@@ -48,8 +48,11 @@
     .bottom-nav {
       display: flex;
       flex: 0 0 auto;
-      background: var(--sidebar-bg);
+      /* Mirror the top status bar (--surface + a divider) so the nav reads as a
+       * distinct surface instead of blending into the page background. */
+      background: var(--surface);
       border-top: 1px solid var(--border);
+      box-shadow: 0 -1px 8px oklch(0 0 0 / 0.06);
       /* Clear the phone's home-indicator / gesture bar. */
       padding-bottom: env(safe-area-inset-bottom, 0px);
     }
@@ -61,9 +64,9 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
-    padding: 8px 2px;
-    min-height: 52px; /* comfortable tap target */
+    gap: 4px;
+    padding: 10px 2px;
+    min-height: 62px; /* comfortable tap target */
     color: var(--text-dim);
     transition: color var(--transition-fast);
   }
@@ -74,7 +77,7 @@
     display: inline-flex;
   }
   .tab-label {
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 600;
     letter-spacing: 0.01em;
     line-height: 1;

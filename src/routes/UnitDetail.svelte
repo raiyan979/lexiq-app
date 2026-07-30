@@ -227,7 +227,7 @@
   }
   .vrow {
     display: grid;
-    grid-template-columns: 1fr auto 1.2fr;
+    grid-template-columns: 1.3fr auto 1fr;
     gap: var(--space-3);
     align-items: baseline;
     padding: var(--space-2) 0;
@@ -243,11 +243,12 @@
     font-weight: 600;
     font-size: var(--reading-size);
   }
-  .vfr.m {
-    color: var(--gender-m);
-  }
+  /* Gender is not conveyed by colouring the word: the pink/blue tints read as a
+   * loud accent that crowds the row. Words stay in the normal text colour, matching
+   * the Library list. */
+  .vfr.m,
   .vfr.f {
-    color: var(--gender-f);
+    color: var(--text);
   }
   .vipa {
     color: var(--text-dim);

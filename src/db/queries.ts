@@ -372,10 +372,16 @@ export async function resetProgress(): Promise<void> {
         total_reviews = 0, total_new_learned = 0, xp = 0
       WHERE id = 1`,
   );
-  // Mirror the seed: the first unit is available, everything else locked.
+  // Mirror the seed: the first unit in curriculum order (A1, chapter 1) is
+  // available, everything else locked. Ordered by level+order_index, not id,
+  // since ids are stable hashes rather than sequential.
   await db.execute(
     `UPDATE unit_progress SET
-        status = CASE WHEN unit_id = (SELECT MIN(id) FROM units)
+        status = CASE WHEN unit_id = (
+                        SELECT id FROM units
+                        ORDER BY CASE level WHEN 'A1' THEN 0 WHEN 'A2' THEN 1 ELSE 2 END,
+                                 order_index ASC
+                        LIMIT 1)
                       THEN 'available' ELSE 'locked' END,
         lessons_done = '[]', completed_at = NULL`,
   );

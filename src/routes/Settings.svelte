@@ -5,6 +5,16 @@
   import { getSetting, setSetting, resetProgress } from '../db/queries';
   import { stats } from '../ui/stats.svelte';
   import { navigate } from '../ui/router.svelte';
+  import { getVersion } from '@tauri-apps/api/app';
+
+  // App version for the About section, read from the Tauri build (tauri.conf.json).
+  // Falls back to a static string in a plain browser preview where the API is absent.
+  let appVersion = $state('0.1.0');
+  void getVersion()
+    .then((v) => (appVersion = v))
+    .catch(() => {
+      /* not running under Tauri (dev preview) */
+    });
 
   // Study settings live in the DB (the scheduler reads them); load current values.
   let newCards = $state(15);
@@ -225,6 +235,23 @@
       </div>
     {/if}
   </div>
+
+  <!-- About -->
+  <div class="card">
+    <h2>About</h2>
+    <div class="row">
+      <div class="label">
+        <span class="name">Lexiq <span class="badge mono">v{appVersion}</span></span>
+        <span class="hint">Learn French offline, at your own pace.</span>
+      </div>
+    </div>
+    <div class="row">
+      <div class="label">
+        <span class="name">Made by Raiyan Mirza</span>
+        <span class="hint">An offline-first French course — A1 to B1, built for the phone.</span>
+      </div>
+    </div>
+  </div>
 </section>
 
 <style>
@@ -412,5 +439,31 @@
     color: var(--success);
     font-size: 14px;
     flex-shrink: 0;
+  }
+  /* Phones: the side-by-side label/control layout squeezes the description text
+   * into a narrow, many-line column. Stack them so the hint gets the full width
+   * and the control sits comfortably beneath it. */
+  @media (max-width: 640px) {
+    .row {
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--space-3);
+    }
+    .seg {
+      width: 100%;
+    }
+    .seg-btn {
+      flex: 1;
+      text-align: center;
+    }
+    .num,
+    .select,
+    .btn,
+    .toggle {
+      align-self: flex-start;
+    }
+    .confirm {
+      align-self: flex-start;
+    }
   }
 </style>

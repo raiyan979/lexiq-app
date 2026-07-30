@@ -17,7 +17,9 @@ content/.cache/
 
 # Generated seed artifacts (produced by content/build.ts; not source)
 src-tauri/resources/*.db
-src-tauri/resources/audio/
+# Generated TTS audio clips (produced by content/pipeline/audio.ts; served as
+# frontend static assets, not source).
+public/audio/
 
 # Local design reference (the redesign mockup) and preview tooling — not source
 Lexiq Redesign*.html
@@ -28,6 +30,17 @@ scripts/dev-*.mjs
 
 # Local working notes (redesign planning, etc.) — never pushed
 *.local.md
+
+# Android signing secrets + build outputs (keystore itself lives outside the repo)
+src-tauri/gen/android/keystore.properties
+*.keystore
+*.jks
+src-tauri/gen/android/app/build/
+src-tauri/gen/android/build/
+src-tauri/gen/android/.gradle/
+# Generated Android assets (frontend bundle + seed DB are produced by the build,
+# not source; the seed ships embedded via include_bytes! in lib.rs)
+src-tauri/gen/android/app/src/main/assets/
 
 # Editor directories and files
 .vscode/*
