@@ -41,7 +41,7 @@ async function load(): Promise<Database> {
     // A missing/locked DB file is unrecoverable and must be surfaced, not
     // swallowed (§12). The UI shows this message rather than a blank screen.
     throw new Error(
-      `Could not open the Lexiq database (${DB_URL}). The app data may be ` +
+      `Could not open the Croqui database (${DB_URL}). The app data may be ` +
         `missing or corrupted. Try reinstalling.`,
       { cause },
     );

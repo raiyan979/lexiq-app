@@ -7,7 +7,7 @@
  * can't import from TS; keep the two in sync (they're annotated on both sides).
  */
 
-export const APP_NAME = 'Lexiq';
+export const APP_NAME = 'Croqui';
 
 /** Chrome dimensions (px). Mirror of the --sidebar/--statusbar vars in theme.css. */
 export const CHROME = {

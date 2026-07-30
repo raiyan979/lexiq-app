@@ -50,6 +50,11 @@
   ];
   const RETENTIONS = ['0.8', '0.85', '0.9', '0.95'];
 
+  // The in-context AI helper ships only once the app is monetised. Hidden from
+  // the current (feedback / pre-Play-Store) build — flip to true to restore the
+  // Settings card when the feature is ready.
+  const SHOW_AI = false;
+
   async function saveNewCards(v: number): Promise<void> {
     const clamped = Math.max(0, Math.min(100, Math.round(v)));
     newCards = clamped;
@@ -192,19 +197,21 @@
     </div>
   </div>
 
-  <!-- AI (stub) -->
-  <div class="card">
-    <h2>AI assistant</h2>
-    <div class="row">
-      <div class="label">
-        <span class="name">Explain-in-context <span class="badge mono">Coming soon</span></span>
-        <span class="hint">An optional local AI helper. Disabled in this build.</span>
+  <!-- AI (stub) — hidden until the feature ships; see SHOW_AI above. -->
+  {#if SHOW_AI}
+    <div class="card">
+      <h2>AI assistant</h2>
+      <div class="row">
+        <div class="label">
+          <span class="name">Explain-in-context <span class="badge mono">Coming soon</span></span>
+          <span class="hint">An optional local AI helper. Disabled in this build.</span>
+        </div>
+        <button type="button" class="toggle" disabled aria-label="AI assistant" aria-checked="false" role="switch">
+          <span class="knob"></span>
+        </button>
       </div>
-      <button type="button" class="toggle" disabled aria-label="AI assistant" aria-checked="false" role="switch">
-        <span class="knob"></span>
-      </button>
     </div>
-  </div>
+  {/if}
 
   <!-- Data -->
   <div class="card danger">
@@ -241,7 +248,7 @@
     <h2>About</h2>
     <div class="row">
       <div class="label">
-        <span class="name">Lexiq <span class="badge mono">v{appVersion}</span></span>
+        <span class="name">Croqui <span class="badge mono">v{appVersion}</span></span>
         <span class="hint">Learn French offline, at your own pace.</span>
       </div>
     </div>

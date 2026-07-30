@@ -1,6 +1,6 @@
 <script lang="ts">
   /*
-   * Lexiq mascot — a friendly cartoon croissant. Fixed warm colors (a croissant
+   * Croqui mascot — a friendly cartoon croissant. Fixed warm colors (a croissant
    * is golden in any theme), so this does NOT use theme tokens. Scales with the
    * `size` prop. Decorative by default; pass a `title` to announce it.
    */

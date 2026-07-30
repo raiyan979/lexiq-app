@@ -20,7 +20,7 @@
 
 <main class="onboard">
   <div class="inner">
-    <Mascot size={72} title="Lexiq mascot" />
+    <Mascot size={72} title="Croqui mascot" />
     <h1 class="title">Welcome to {APP_NAME}</h1>
     <p class="lead">Who's learning French today?</p>
 

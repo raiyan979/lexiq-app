@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "Lexiq",
+  "productName": "Croqui",
   "version": "0.1.0",
   "identifier": "com.lexiq.app",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Lexiq",
+        "title": "Croqui",
         "width": 1180,
         "height": 780,
         "minWidth": 900,

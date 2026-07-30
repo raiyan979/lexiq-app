@@ -26,7 +26,7 @@
 
 <nav class="sidebar" class:collapsed={layout.sidebarCollapsed} aria-label="Primary">
   <div class="brand">
-    <Mascot size={layout.sidebarCollapsed ? 30 : 28} title="Lexiq mascot" />
+    <Mascot size={layout.sidebarCollapsed ? 30 : 28} title="Croqui mascot" />
     {#if !layout.sidebarCollapsed}<span class="wordmark mono">{APP_NAME}</span>{/if}
   </div>
 
