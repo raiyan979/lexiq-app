@@ -11,6 +11,7 @@
  */
 
 import init0001 from './0001_init.sql?raw';
+import learningSteps0002 from './0002_learning_steps.sql?raw';
 
 export interface Migration {
   version: number;
@@ -20,6 +21,7 @@ export interface Migration {
 
 export const migrations: Migration[] = [
   { version: 1, name: 'init', sql: init0001 },
+  { version: 2, name: 'learning_steps', sql: learningSteps0002 },
 ];
 
 export const LATEST_VERSION = migrations.reduce(

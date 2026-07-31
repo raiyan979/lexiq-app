@@ -94,6 +94,8 @@ export interface CardRow {
   reps: number;
   lapses: number;
   last_review: string | null;
+  /** ts-fsrs short-term step index; 0 for new/graduated cards. */
+  learning_steps: number;
 }
 
 export interface ReviewLogRow {

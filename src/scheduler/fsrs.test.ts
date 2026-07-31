@@ -20,6 +20,7 @@ function card(overrides: Partial<CardRow> = {}): CardRow {
     reps: 0,
     lapses: 0,
     last_review: null,
+    learning_steps: 0,
     ...overrides,
   };
 }

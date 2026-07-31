@@ -81,6 +81,7 @@ CREATE TABLE cards (
   reps INTEGER DEFAULT 0,
   lapses INTEGER DEFAULT 0,
   last_review TEXT,
+  learning_steps INTEGER NOT NULL DEFAULT 0,  -- ts-fsrs short-term step index
   UNIQUE(item_type, item_id)
 );
 

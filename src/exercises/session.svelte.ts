@@ -39,6 +39,31 @@ export type Phase = 'loading' | 'answering' | 'feedback' | 'done' | 'empty';
 /** Above this, a correct answer is treated as slow → suggests Hard (brief §5). */
 const SLOW_MS = 25_000;
 
+/** Recognition types are easier (pick from options); production types are harder. */
+const RECOGNITION_TYPES = new Set(['mc', 'match']);
+
+/** In-place-safe Fisher–Yates shuffle (new array); reshuffles every session. */
+function shuffled<T>(items: readonly T[]): T[] {
+  const out = items.slice();
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j]!, out[i]!];
+  }
+  return out;
+}
+
+/**
+ * Order a unit's exercises for one session: easy recognition questions
+ * (multiple-choice, matching — drawn straight from the taught vocab) first, then
+ * the harder production questions. Each tier is shuffled independently, so the
+ * learner always eases in but never sees the same fixed script twice.
+ */
+function orderForSession(views: ExerciseView[]): ExerciseView[] {
+  const recognition = views.filter((v) => RECOGNITION_TYPES.has(v.type));
+  const production = views.filter((v) => !RECOGNITION_TYPES.has(v.type));
+  return [...shuffled(recognition), ...shuffled(production)];
+}
+
 export class Session {
   phase = $state<Phase>('loading');
   index = $state(0);
@@ -84,7 +109,7 @@ export class Session {
     this.unlockedUnitId = null;
     this.unlockedTitle = null;
     const rows = await getExercisesForUnit(unitId);
-    this.#views = rows.map(parseExercise);
+    this.#views = orderForSession(rows.map(parseExercise));
     this.total = this.#views.length;
     const retentionSetting = await getSetting('target_retention');
     if (retentionSetting !== null) this.#retention = Number(retentionSetting);

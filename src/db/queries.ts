@@ -137,8 +137,8 @@ export async function updateCardScheduling(
     `UPDATE cards SET
         state = $1, due = $2, stability = $3, difficulty = $4,
         elapsed_days = $5, scheduled_days = $6, reps = $7, lapses = $8,
-        last_review = $9
-      WHERE id = $10`,
+        last_review = $9, learning_steps = $10
+      WHERE id = $11`,
     [
       s.state,
       s.due,
@@ -149,6 +149,7 @@ export async function updateCardScheduling(
       s.reps,
       s.lapses,
       s.last_review,
+      s.learning_steps,
       id,
     ],
   );

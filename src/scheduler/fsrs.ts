@@ -5,11 +5,13 @@
  * grade) lives in scheduler/queue.ts; this file only does the FSRS math and the
  * CardRow ⇄ ts-fsrs Card conversion.
  *
- * Design note: we run with `enable_short_term: false`, which disables FSRS
- * (re)learning steps. That means ts-fsrs never needs to persist a
- * `learning_steps` value between reviews — matching our fixed schema (§3), whose
- * `cards` table has no such column. `enable_fuzz: false` keeps scheduling
- * reproducible (same card + rating + now → same interval).
+ * Design note: we run with `enable_short_term: true` and day-based learning
+ * steps (10m, 1d). This makes a freshly-learned word come back the *next day*
+ * (rather than jumping straight to a ~3-day gap), and a wrong answer come back
+ * the same day — so the daily review reflects recent lessons instead of looking
+ * frozen. The card's current step index is persisted in `cards.learning_steps`
+ * (migration 0002) so it survives across reviews. `enable_fuzz: false` keeps
+ * scheduling reproducible (same card + rating + now → same interval).
  */
 
 import {
@@ -75,6 +77,7 @@ export interface CardScheduling {
   reps: number;
   lapses: number;
   last_review: string;
+  learning_steps: number;
 }
 
 /** A row to append to `review_logs` for one graded review. */
@@ -142,8 +145,12 @@ export function makeScheduler(
 ): Scheduler {
   const f: FSRS = fsrs({
     request_retention: targetRetention,
-    enable_short_term: false,
+    enable_short_term: true,
     enable_fuzz: false,
+    // A new word answered correctly is due tomorrow, then graduates to the
+    // normal FSRS spacing; a wrong answer returns in 10 minutes (same day).
+    learning_steps: ['10m', '1d'],
+    relearning_steps: ['10m', '1d'],
   });
 
   function toFsrsCard(row: CardRow, now: Date): Card {
@@ -157,7 +164,7 @@ export function makeScheduler(
       difficulty: row.difficulty ?? 0,
       elapsed_days: row.elapsed_days,
       scheduled_days: row.scheduled_days,
-      learning_steps: 0,
+      learning_steps: row.learning_steps,
       reps: row.reps,
       lapses: row.lapses,
       state: STRING_TO_STATE[row.state],
@@ -196,6 +203,7 @@ export function makeScheduler(
         reps: next.reps,
         lapses: next.lapses,
         last_review: (next.last_review ?? now).toISOString(),
+        learning_steps: next.learning_steps,
       },
       log: {
         rating,
