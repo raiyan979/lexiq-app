@@ -42,7 +42,7 @@
     return vocab.filter((v) => {
       if (levelFilter !== 'all' && v.level !== levelFilter) return false;
       if (nq === '') return true;
-      return norm(v.fr).includes(nq) || norm(v.en).includes(nq) || (v.ipa ? norm(v.ipa).includes(nq) : false);
+      return norm(v.fr).includes(nq) || norm(v.en).includes(nq);
     });
   });
 
@@ -125,7 +125,6 @@
                 {#if GENDER_ARTICLE[v.gender]}<span class="art">{GENDER_ARTICLE[v.gender]}</span>{/if}
                 {v.fr}
               </span>
-              {#if v.ipa}<span class="ipa mono">/{v.ipa}/</span>{/if}
             </div>
             <div class="meta">
               <span class="en">{v.en}</span>
@@ -274,7 +273,7 @@
   .row.sentence {
     align-items: flex-start;
   }
-  /* Word (or sentence) + its IPA, stacked; takes the free space in the row. */
+  /* French word (or sentence); takes the free space in the row. */
   .term {
     display: flex;
     flex-direction: column;
@@ -291,10 +290,6 @@
     color: var(--text-dim);
     font-weight: 400;
     margin-right: 2px;
-  }
-  .ipa {
-    color: var(--text-dim);
-    font-size: 13px;
   }
   .meta {
     display: flex;

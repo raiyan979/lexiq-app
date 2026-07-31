@@ -108,7 +108,6 @@
                 <AudioButton src={v.audio_path} label="Play «{v.lemma_fr}»" />
                 {v.lemma_fr}
               </span>
-              {#if v.ipa}<span class="vipa mono">/{v.ipa}/</span>{/if}
               <span class="ven">{v.translation_en}</span>
             </div>
           {/each}
@@ -227,7 +226,7 @@
   }
   .vrow {
     display: grid;
-    grid-template-columns: 1.3fr auto 1fr;
+    grid-template-columns: 1fr auto;
     gap: var(--space-3);
     align-items: baseline;
     padding: var(--space-2) 0;
@@ -249,10 +248,6 @@
   .vfr.m,
   .vfr.f {
     color: var(--text);
-  }
-  .vipa {
-    color: var(--text-dim);
-    font-size: 13px;
   }
   .ven {
     color: var(--text-dim);

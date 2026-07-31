@@ -13,6 +13,7 @@ import Review from '../routes/Review.svelte';
 import Library from '../routes/Library.svelte';
 import Stats from '../routes/Stats.svelte';
 import Settings from '../routes/Settings.svelte';
+import Legal from '../routes/Legal.svelte';
 
 export interface RouteEntry {
   pattern: string;
@@ -30,6 +31,7 @@ export const routes: RouteEntry[] = [
   { pattern: '/library', component: Library, title: 'Library' },
   { pattern: '/stats', component: Stats, title: 'Stats' },
   { pattern: '/settings', component: Settings, title: 'Settings' },
+  { pattern: '/legal', component: Legal, title: 'Privacy & Terms' },
 ];
 
 export interface NavItem {
