@@ -258,6 +258,13 @@
         <span class="hint">An offline-first French course — A1 to B1, built for the phone.</span>
       </div>
     </div>
+    <div class="row">
+      <div class="label">
+        <span class="name">Privacy &amp; Terms</span>
+        <span class="hint">How your data is handled (it stays on your device) and terms of use.</span>
+      </div>
+      <button type="button" class="btn" onclick={() => navigate('/legal')}>View</button>
+    </div>
   </div>
 </section>
 
