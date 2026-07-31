@@ -43,8 +43,8 @@
     border-bottom: 1px solid var(--border);
   }
   .view-title {
-    font-weight: 600;
-    font-size: 15px;
+    font-weight: 700;
+    font-size: 19px;
   }
   .status {
     display: flex;
@@ -75,7 +75,7 @@
       padding-top: calc(var(--space-3) + env(safe-area-inset-top, 0px));
     }
     .view-title {
-      font-size: 18px;
+      font-size: 20px;
     }
     .status {
       font-size: 13px;

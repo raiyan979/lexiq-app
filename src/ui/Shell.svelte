@@ -62,7 +62,9 @@
     overflow-y: auto;
     overscroll-behavior-y: contain;
     scroll-behavior: smooth;
-    padding-bottom: var(--space-8); /* breathing room so the last item isn't flush */
+    /* breathing room + clearance for the Android nav bar (edge-to-edge) so the
+     * last item isn't flush or hidden under the system bar */
+    padding-bottom: calc(var(--space-8) + env(safe-area-inset-bottom, 0px));
     outline: none; /* focused only programmatically via skip link */
   }
 
