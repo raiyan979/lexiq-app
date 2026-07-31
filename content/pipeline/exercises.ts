@@ -107,6 +107,30 @@ export function generateVocabMc(
   };
 }
 
+/** Reverse MC: show the French word, pick the English meaning. */
+export function generateVocabMcReverse(
+  target: VocabDef,
+  otherVocab: readonly VocabDef[],
+  rng: () => number,
+): GeneratedExercise {
+  const distractors = pickDistractors(
+    target.translation_en,
+    otherVocab.map((v) => v.translation_en),
+    CONFIG.distractorCount,
+    rng,
+  );
+  return {
+    type: 'mc',
+    direction: 'fr_en',
+    prompt: target.lemma_fr,
+    answer: target.translation_en,
+    accepted_alternatives: null,
+    distractors,
+    sentence_fr: null,
+    vocab_lemma: target.lemma_fr,
+  };
+}
+
 export function generateMatch(group: readonly VocabDef[]): GeneratedExercise {
   const pairs = group.map((v) => ({ fr: v.lemma_fr, en: v.translation_en }));
   return {
@@ -213,8 +237,29 @@ export function makeListeningDictation(sentence: SentenceDef): GeneratedExercise
 }
 
 /**
- * Generate a ~15-exercise set for a unit spanning all six types, drawn from its
+ * Per-unit exercise budget (upper bounds; each is capped by how much vocab /
+ * how many sentences the unit actually has, so small units just get fewer).
+ * Aims for ~30 exercises so learners get more practice and can't simply
+ * memorise a fixed 15-question script. The session shuffles order at runtime.
+ */
+const BUDGET = {
+  mcEnFr: 7, // recognition: English prompt → pick French
+  mcFrEn: 6, // recognition: French prompt → pick English
+  matchGroups: 2, // recognition: groups of 5
+  cloze: 5, // production: fill the blank
+  typed: 4, // production: type the French translation
+  wordOrder: 3, // production: arrange the tokens
+  dictation: 3, // production: type what you hear
+} as const;
+
+/**
+ * Generate a ~30-exercise set for a unit spanning all six types, drawn from its
  * authored vocab + sentences. Deterministic for a given seed.
+ *
+ * Sentence-based types each draw from an independent shuffle of the unit's
+ * sentences, so a unit with only a handful of sentences still yields variety:
+ * the same sentence may appear under different exercise types (cloze vs.
+ * word-order), which drills a different skill each time.
  */
 export function generateExercisesForUnit(
   unit: UnitDef,
@@ -224,43 +269,33 @@ export function generateExercisesForUnit(
   const out: GeneratedExercise[] = [];
   const vocabLemmas = new Set(unit.vocab.map((v) => v.lemma_fr.toLowerCase()));
 
-  // Vocab MC: up to 6, each with distractors from the rest of the unit vocab.
-  const mcVocab = shuffle(unit.vocab, rng).slice(0, 6);
-  for (const v of mcVocab) {
+  // Vocab MC, both directions — distractors drawn from the rest of the vocab.
+  for (const v of shuffle(unit.vocab, rng).slice(0, BUDGET.mcEnFr)) {
     out.push(generateVocabMc(v, unit.vocab, rng));
   }
-
-  // Match: one or two groups of 5 from the vocab.
-  const matchPool = shuffle(unit.vocab, rng);
-  for (let i = 0; i + CONFIG.matchGroupSize <= matchPool.length && i < 10; i += CONFIG.matchGroupSize) {
-    out.push(generateMatch(matchPool.slice(i, i + CONFIG.matchGroupSize)));
-    if (out.filter((e) => e.type === 'match').length >= 2) break;
+  for (const v of shuffle(unit.vocab, rng).slice(0, BUDGET.mcFrEn)) {
+    out.push(generateVocabMcReverse(v, unit.vocab, rng));
   }
 
-  // Sentence-based: cloze (up to 3), typed_translation (2), word_order (1),
-  // listening_dictation (1), drawn from the unit's authored sentences.
-  const sentences = shuffle(unit.sentences, rng);
-  let si = 0;
-  const nextSentence = (): SentenceDef | undefined => sentences[si++];
+  // Match: up to two groups of 5 from the vocab.
+  const matchPool = shuffle(unit.vocab, rng);
+  for (
+    let i = 0, groups = 0;
+    i + CONFIG.matchGroupSize <= matchPool.length && groups < BUDGET.matchGroups;
+    i += CONFIG.matchGroupSize, groups++
+  ) {
+    out.push(generateMatch(matchPool.slice(i, i + CONFIG.matchGroupSize)));
+  }
 
-  for (let c = 0; c < 3; c++) {
-    const s = nextSentence();
-    if (!s) break;
+  // Sentence-based production types, each from its own shuffle.
+  const take = (n: number): SentenceDef[] => shuffle(unit.sentences, rng).slice(0, n);
+  for (const s of take(BUDGET.cloze)) {
     const cloze = makeCloze(s, vocabLemmas, rng);
     if (cloze) out.push(cloze);
   }
-  for (let t = 0; t < 2; t++) {
-    const s = nextSentence();
-    if (s) out.push(makeTypedTranslation(s));
-  }
-  {
-    const s = nextSentence();
-    if (s) out.push(makeWordOrder(s));
-  }
-  {
-    const s = nextSentence();
-    if (s) out.push(makeListeningDictation(s));
-  }
+  for (const s of take(BUDGET.typed)) out.push(makeTypedTranslation(s));
+  for (const s of take(BUDGET.wordOrder)) out.push(makeWordOrder(s));
+  for (const s of take(BUDGET.dictation)) out.push(makeListeningDictation(s));
 
   // Prepend any hand-authored exercises so they take priority in ordering.
   const authored: GeneratedExercise[] = (unit.exercises ?? []).map((e) => ({

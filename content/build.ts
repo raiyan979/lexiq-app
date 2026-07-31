@@ -35,7 +35,7 @@ const RESOURCES = join(HERE, '..', 'src-tauri', 'resources');
 const AUDIO_DIR = join(HERE, '..', 'public', AUDIO_SUBDIR);
 const OUT_DB = join(RESOURCES, 'lexiq.db');
 
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 // Content version — bump whenever the curriculum/generated content changes. The
 // runtime content-sync (src/db/content-sync.ts) compares this against the value
 // in a user's DB and upgrades their content in place when it's newer, preserving
