@@ -68,10 +68,19 @@
     flex-direction: column;
     height: 100%;
     width: var(--sidebar-width);
-    background: var(--sidebar-bg);
+    /* --surface (not --sidebar-bg) so the rail is visibly distinct from the
+     * page background — matching the top and bottom bars. On a tablet the old
+     * near-background tint made the sidebar blend into the page. */
+    background: var(--surface);
     border-right: 1px solid var(--border);
-    transition: width var(--transition);
+    box-shadow: 1px 0 8px oklch(0 0 0 / 0.05);
+    /* No width transition: Android WebView fails to interpolate a width whose
+     * endpoints are var()-based, leaving the rail stuck at its expanded width
+     * (the collapse toggle then appears to do nothing). Snap instead. */
     overflow: hidden;
+    /* Edge-to-edge on Android: keep the Collapse button clear of the nav bar /
+     * taskbar, which otherwise covers it on a tablet. Zero without an inset. */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   .sidebar.collapsed {
     width: var(--sidebar-width-collapsed);
