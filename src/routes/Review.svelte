@@ -93,7 +93,6 @@
             {item.back}
             {#if item.audioPath}<AudioButton src={item.audioPath} label="Replay" />{/if}
           </p>
-          {#if item.ipa}<p class="ipa mono">/{item.ipa}/</p>{/if}
         {/if}
       {/if}
     </div>
@@ -192,10 +191,6 @@
     align-items: center;
     justify-content: center;
     gap: var(--space-2);
-  }
-  .ipa {
-    color: var(--text-dim);
-    font-size: 14px;
   }
   .back-md {
     text-align: left;
