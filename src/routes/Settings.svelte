@@ -68,8 +68,11 @@
     await setSetting('target_retention', v);
   }
 
-  // --- Feedback (opens the user's email app, pre-filled; capped per month) ---
-  const FEEDBACK_EMAIL = 'raiyan.mirza1233@gmail.com';
+  // --- Feedback: opens a hosted form (no personal contact exposed); capped/month.
+  // TODO: paste the real Google Form share link here; the card shows itself once
+  // this is no longer the placeholder (see FEEDBACK_READY).
+  const FEEDBACK_FORM_URL = 'https://forms.gle/REPLACE_ME';
+  const FEEDBACK_READY = !FEEDBACK_FORM_URL.includes('REPLACE_ME');
   const FEEDBACK_MONTHLY_CAP = 4;
   const FEEDBACK_KEY = 'lexiq.feedback';
 
@@ -87,28 +90,21 @@
     }
   }
 
-  let feedbackText = $state('');
   let feedbackBusy = $state(false);
-  let feedbackSent = $state(false);
   let feedbackError = $state<string | null>(null);
   let feedbackUsed = $state(readFeedbackCount());
   const feedbackLeft = $derived(Math.max(0, FEEDBACK_MONTHLY_CAP - feedbackUsed));
 
-  async function sendFeedback(): Promise<void> {
-    const text = feedbackText.trim();
-    if (text.length === 0 || feedbackLeft <= 0) return;
+  async function openFeedbackForm(): Promise<void> {
+    if (feedbackLeft <= 0) return;
     feedbackBusy = true;
     feedbackError = null;
-    const subject = `Croqui feedback (v${appVersion})`;
-    const url = `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`;
     try {
-      await openUrl(url);
+      await openUrl(FEEDBACK_FORM_URL);
       feedbackUsed = readFeedbackCount() + 1;
       localStorage.setItem(FEEDBACK_KEY, JSON.stringify({ month: currentMonth(), count: feedbackUsed }));
-      feedbackSent = true;
-      feedbackText = '';
     } catch {
-      feedbackError = `Couldn't open your email app. You can email ${FEEDBACK_EMAIL} directly.`;
+      feedbackError = "Couldn't open the feedback form. Please check your connection and try again.";
     } finally {
       feedbackBusy = false;
     }
@@ -290,46 +286,32 @@
     {/if}
   </div>
 
-  <!-- Feedback -->
+  <!-- Feedback — hidden until a real form link is configured (FEEDBACK_READY). -->
+  {#if FEEDBACK_READY}
   <div class="card">
     <h2>Feedback</h2>
-    {#if feedbackSent}
-      <div class="row">
-        <div class="label">
-          <span class="name">Thanks! ✓</span>
-          <span class="hint">Your email app should have opened with your message — send it to reach me.</span>
-        </div>
-        <button type="button" class="btn" onclick={() => (feedbackSent = false)}>Send more</button>
-      </div>
-    {:else}
-      <div class="fb">
+    <div class="row">
+      <div class="label">
+        <span class="name">Share feedback</span>
         <span class="hint">
-          Found a bug or have an idea? Tell me — this opens your email app with the message ready to
-          send.
+          Found a bug or have an idea? Open the quick form — it takes a minute.
+          {feedbackLeft} of {FEEDBACK_MONTHLY_CAP} left this month.
         </span>
-        <textarea
-          class="fb-input"
-          rows="4"
-          maxlength="2000"
-          placeholder="What's working, what's confusing, what's broken…"
-          bind:value={feedbackText}
-          disabled={feedbackLeft <= 0}
-        ></textarea>
-        {#if feedbackError}<span class="fb-err">{feedbackError}</span>{/if}
-        <div class="fb-actions">
-          <span class="hint mono">{feedbackLeft} of {FEEDBACK_MONTHLY_CAP} left this month</span>
-          <button
-            type="button"
-            class="btn primary"
-            disabled={feedbackBusy || feedbackText.trim().length === 0 || feedbackLeft <= 0}
-            onclick={sendFeedback}
-          >
-            {feedbackBusy ? 'Opening…' : 'Send feedback'}
-          </button>
-        </div>
       </div>
+      <button
+        type="button"
+        class="btn primary"
+        disabled={feedbackBusy || feedbackLeft <= 0}
+        onclick={openFeedbackForm}
+      >
+        {feedbackLeft <= 0 ? 'Limit reached' : feedbackBusy ? 'Opening…' : 'Open form'}
+      </button>
+    </div>
+    {#if feedbackError}
+      <div class="row"><span class="fb-err">{feedbackError}</span></div>
     {/if}
   </div>
+  {/if}
 
   <!-- About -->
   <div class="card">
@@ -537,34 +519,6 @@
     background: var(--accent);
     border-color: var(--accent);
     font-weight: 600;
-  }
-  /* Feedback form */
-  .fb {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-  .fb-input {
-    width: 100%;
-    resize: vertical;
-    background: var(--surface-2);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-button);
-    padding: var(--space-3);
-    font: inherit;
-    font-size: 14px;
-  }
-  .fb-input:focus {
-    outline: none;
-    border-color: var(--accent);
-  }
-  .fb-actions {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-3);
-    flex-wrap: wrap;
   }
   .fb-err {
     color: var(--error);
