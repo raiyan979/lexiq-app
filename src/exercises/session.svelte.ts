@@ -43,11 +43,11 @@ const SLOW_MS = 25_000;
 const PASS_THRESHOLD = 0.4;
 
 /**
- * Difficulty tiers, easiest first. Ordering a session by tier keeps the opening
- * questions tap-only (no spelling): recognition (multiple-choice, matching) →
- * word-order tiles → free-typing (fill-the-blank, translation, dictation).
+ * The only types that require the keyboard. Everything else — multiple-choice
+ * (including fill-the-blank shown as MC), matching, and word-order tiles — is
+ * "tap-only" and is ordered ahead of these, so the opening questions never
+ * require typing.
  */
-const RECOGNITION_TYPES = new Set(['mc', 'match']);
 const TYPING_TYPES = new Set(['cloze', 'typed_translation', 'listening_dictation']);
 
 /** In-place-safe Fisher–Yates shuffle (new array); reshuffles every session. */
@@ -61,18 +61,15 @@ function shuffled<T>(items: readonly T[]): T[] {
 }
 
 /**
- * Order a unit's exercises for one session by difficulty tier, shuffled within
- * each tier: recognition first, then word-order, then free-typing last. This
- * guarantees the early questions never require spelling, keeps the easy→hard
- * ramp, and still varies the order every attempt.
+ * Order a unit's exercises for one session: all tap-only questions first
+ * (multiple-choice, MC fill-the-blank, matching, word-order tiles), then the
+ * typed ones last. Each group is shuffled, so the early questions are always a
+ * varied, no-typing mix and the order still changes every attempt.
  */
 function orderForSession(views: ExerciseView[]): ExerciseView[] {
-  const recognition = views.filter((v) => RECOGNITION_TYPES.has(v.type));
+  const tapOnly = views.filter((v) => !TYPING_TYPES.has(v.type));
   const typing = views.filter((v) => TYPING_TYPES.has(v.type));
-  const wordOrder = views.filter(
-    (v) => !RECOGNITION_TYPES.has(v.type) && !TYPING_TYPES.has(v.type),
-  );
-  return [...shuffled(recognition), ...shuffled(wordOrder), ...shuffled(typing)];
+  return [...shuffled(tapOnly), ...shuffled(typing)];
 }
 
 /** localStorage key holding an in-progress session for a unit (for resume). */

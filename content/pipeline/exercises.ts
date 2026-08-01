@@ -197,6 +197,34 @@ export function makeCloze(
   };
 }
 
+/**
+ * Fill-in-the-blank as MULTIPLE CHOICE: the same blanked sentence as a cloze, but
+ * the learner picks the missing word from options instead of typing it. Emitted as
+ * an `mc` row (reuses the MC component), with distractors from the unit's vocab.
+ * Returns null when no cloze or no distractors can be formed.
+ */
+export function generateClozeMc(
+  sentence: SentenceDef,
+  vocabLemmas: ReadonlySet<string>,
+  distractorPool: readonly string[],
+  rng: () => number,
+): GeneratedExercise | null {
+  const cloze = makeCloze(sentence, vocabLemmas, rng);
+  if (cloze === null) return null;
+  const distractors = pickDistractors(cloze.answer, distractorPool, CONFIG.distractorCount, rng);
+  if (distractors.length === 0) return null;
+  return {
+    type: 'mc',
+    direction: null,
+    prompt: cloze.prompt, // the sentence with "____"
+    answer: cloze.answer, // the missing word
+    accepted_alternatives: null,
+    distractors,
+    sentence_fr: sentence.text_fr,
+    vocab_lemma: null,
+  };
+}
+
 export function makeTypedTranslation(sentence: SentenceDef): GeneratedExercise {
   return {
     type: 'typed_translation',
@@ -243,13 +271,14 @@ export function makeListeningDictation(sentence: SentenceDef): GeneratedExercise
  * memorise a fixed 15-question script. The session shuffles order at runtime.
  */
 const BUDGET = {
-  mcEnFr: 7, // recognition: English prompt → pick French
-  mcFrEn: 6, // recognition: French prompt → pick English
-  matchGroups: 2, // recognition: groups of 5
-  cloze: 5, // production: fill the blank
-  typed: 4, // production: type the French translation
-  wordOrder: 3, // production: arrange the tokens
-  dictation: 3, // production: type what you hear
+  mcEnFr: 6, // tap-only: English prompt → pick French
+  mcFrEn: 5, // tap-only: French prompt → pick English
+  clozeMc: 5, // tap-only: fill the blank by picking the word (multiple choice)
+  matchGroups: 2, // tap-only: groups of 5
+  wordOrder: 4, // tap-only: arrange the tokens (mix-and-match to translate)
+  cloze: 2, // typing: fill the blank by typing
+  typed: 3, // typing: type the French translation
+  dictation: 3, // typing: type what you hear
 } as const;
 
 /**
@@ -287,14 +316,21 @@ export function generateExercisesForUnit(
     out.push(generateMatch(matchPool.slice(i, i + CONFIG.matchGroupSize)));
   }
 
-  // Sentence-based production types, each from its own shuffle.
+  // Sentence-based types, each from its own shuffle.
   const take = (n: number): SentenceDef[] => shuffle(unit.sentences, rng).slice(0, n);
+  const distractorPool = unit.vocab.map((v) => v.lemma_fr);
+  // Tap-only: fill-the-blank as multiple choice (carries the early exercises).
+  for (const s of take(BUDGET.clozeMc)) {
+    const ex = generateClozeMc(s, vocabLemmas, distractorPool, rng);
+    if (ex) out.push(ex);
+  }
+  for (const s of take(BUDGET.wordOrder)) out.push(makeWordOrder(s));
+  // Typing types (ordered last at runtime, so they never hit the first questions).
   for (const s of take(BUDGET.cloze)) {
     const cloze = makeCloze(s, vocabLemmas, rng);
     if (cloze) out.push(cloze);
   }
   for (const s of take(BUDGET.typed)) out.push(makeTypedTranslation(s));
-  for (const s of take(BUDGET.wordOrder)) out.push(makeWordOrder(s));
   for (const s of take(BUDGET.dictation)) out.push(makeListeningDictation(s));
 
   // Prepend any hand-authored exercises so they take priority in ordering.
