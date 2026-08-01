@@ -34,9 +34,10 @@
         device.
       </li>
       <li>
-        <strong>Feedback is optional.</strong> If you use the feedback form in Settings, it opens
-        your own email app with a message addressed to the developer — you decide whether to send
-        it. {APP_NAME} itself never sends anything automatically.
+        <strong>Feedback is optional.</strong> If you tap "Share feedback" in Settings, {APP_NAME}
+        opens a short feedback form (hosted by Google Forms) in your browser. Only what you choose
+        to type into that form is submitted, and it goes to the form's private responses — {APP_NAME}
+        itself never sends anything automatically and asks for no personal details.
       </li>
       <li>
         <strong>Children's privacy.</strong> Because {APP_NAME} collects no data at all, it collects

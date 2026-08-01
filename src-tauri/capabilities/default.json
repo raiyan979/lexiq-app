@@ -9,7 +9,7 @@
     "sql:allow-execute",
     {
       "identifier": "opener:allow-open-url",
-      "allow": [{ "url": "mailto:*" }]
+      "allow": [{ "url": "https://forms.gle/*" }, { "url": "https://docs.google.com/*" }]
     }
   ]
 }
