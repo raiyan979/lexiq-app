@@ -18,6 +18,7 @@
 
   function play(event: MouseEvent): void {
     event.stopPropagation();
+    event.preventDefault();
     if (src) void playClip(src);
   }
 </script>
@@ -44,6 +45,14 @@
     text-align: inherit;
     cursor: pointer;
     display: inline;
+    /* On tablet WebViews a tap on selectable text starts a text-selection
+     * gesture instead of firing the click, so the word never plays. Treat the
+     * word purely as a tap target: no selection, no long-press callout, and
+     * fast-tap handling. */
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
   }
   .audio-text:focus-visible {
     outline: 2px solid var(--accent);
