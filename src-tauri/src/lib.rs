@@ -50,6 +50,8 @@ pub fn run() {
     // The frontend opens `sqlite:lexiq.db`, which resolves to the app config dir
     // where `seed_database` (below) placed the pre-built seed on first launch.
     .plugin(tauri_plugin_sql::Builder::default().build())
+    // Opens the user's email app for the Settings → feedback form (mailto:).
+    .plugin(tauri_plugin_opener::init())
     .setup(|app| {
       // Seed the DB before the WebView calls Database.load().
       seed_database(app)?;

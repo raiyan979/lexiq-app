@@ -4,6 +4,7 @@
   import { GRADES } from '../scheduler';
   import { playClip } from '../ui/audio';
   import AudioButton from '../ui/AudioButton.svelte';
+  import AudioText from '../ui/AudioText.svelte';
   import Markdown from '../ui/Markdown.svelte';
   import Confetti from '../ui/Confetti.svelte';
 
@@ -90,7 +91,7 @@
           <div class="back-md"><Markdown source={item.back} /></div>
         {:else}
           <p class="back fr">
-            {item.back}
+            <AudioText src={item.audioPath} label="Hear the answer">{item.back}</AudioText>
             {#if item.audioPath}<AudioButton src={item.audioPath} label="Replay" />{/if}
           </p>
         {/if}

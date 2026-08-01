@@ -6,6 +6,7 @@
   import { stats } from '../ui/stats.svelte';
   import { navigate } from '../ui/router.svelte';
   import { getVersion } from '@tauri-apps/api/app';
+  import { openUrl } from '@tauri-apps/plugin-opener';
 
   // App version for the About section, read from the Tauri build (tauri.conf.json).
   // Falls back to a static string in a plain browser preview where the API is absent.
@@ -65,6 +66,52 @@
   async function saveRetention(v: string): Promise<void> {
     retention = v;
     await setSetting('target_retention', v);
+  }
+
+  // --- Feedback (opens the user's email app, pre-filled; capped per month) ---
+  const FEEDBACK_EMAIL = 'raiyan.mirza1233@gmail.com';
+  const FEEDBACK_MONTHLY_CAP = 4;
+  const FEEDBACK_KEY = 'lexiq.feedback';
+
+  function currentMonth(): string {
+    return new Date().toISOString().slice(0, 7); // YYYY-MM
+  }
+  function readFeedbackCount(): number {
+    try {
+      const raw = localStorage.getItem(FEEDBACK_KEY);
+      if (raw === null) return 0;
+      const v = JSON.parse(raw) as { month: string; count: number };
+      return v.month === currentMonth() ? v.count : 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  let feedbackText = $state('');
+  let feedbackBusy = $state(false);
+  let feedbackSent = $state(false);
+  let feedbackError = $state<string | null>(null);
+  let feedbackUsed = $state(readFeedbackCount());
+  const feedbackLeft = $derived(Math.max(0, FEEDBACK_MONTHLY_CAP - feedbackUsed));
+
+  async function sendFeedback(): Promise<void> {
+    const text = feedbackText.trim();
+    if (text.length === 0 || feedbackLeft <= 0) return;
+    feedbackBusy = true;
+    feedbackError = null;
+    const subject = `Croqui feedback (v${appVersion})`;
+    const url = `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`;
+    try {
+      await openUrl(url);
+      feedbackUsed = readFeedbackCount() + 1;
+      localStorage.setItem(FEEDBACK_KEY, JSON.stringify({ month: currentMonth(), count: feedbackUsed }));
+      feedbackSent = true;
+      feedbackText = '';
+    } catch {
+      feedbackError = `Couldn't open your email app. You can email ${FEEDBACK_EMAIL} directly.`;
+    } finally {
+      feedbackBusy = false;
+    }
   }
 
   // Reset is destructive, so gate it behind an explicit confirm step.
@@ -239,6 +286,47 @@
     {#if resetDone}
       <div class="row">
         <button type="button" class="btn" onclick={() => navigate('/')}>Back to Dashboard</button>
+      </div>
+    {/if}
+  </div>
+
+  <!-- Feedback -->
+  <div class="card">
+    <h2>Feedback</h2>
+    {#if feedbackSent}
+      <div class="row">
+        <div class="label">
+          <span class="name">Thanks! ✓</span>
+          <span class="hint">Your email app should have opened with your message — send it to reach me.</span>
+        </div>
+        <button type="button" class="btn" onclick={() => (feedbackSent = false)}>Send more</button>
+      </div>
+    {:else}
+      <div class="fb">
+        <span class="hint">
+          Found a bug or have an idea? Tell me — this opens your email app with the message ready to
+          send.
+        </span>
+        <textarea
+          class="fb-input"
+          rows="4"
+          maxlength="2000"
+          placeholder="What's working, what's confusing, what's broken…"
+          bind:value={feedbackText}
+          disabled={feedbackLeft <= 0}
+        ></textarea>
+        {#if feedbackError}<span class="fb-err">{feedbackError}</span>{/if}
+        <div class="fb-actions">
+          <span class="hint mono">{feedbackLeft} of {FEEDBACK_MONTHLY_CAP} left this month</span>
+          <button
+            type="button"
+            class="btn primary"
+            disabled={feedbackBusy || feedbackText.trim().length === 0 || feedbackLeft <= 0}
+            onclick={sendFeedback}
+          >
+            {feedbackBusy ? 'Opening…' : 'Send feedback'}
+          </button>
+        </div>
       </div>
     {/if}
   </div>
@@ -443,6 +531,44 @@
     background: var(--error);
     border-color: var(--error);
     font-weight: 600;
+  }
+  .btn.primary {
+    color: var(--on-accent);
+    background: var(--accent);
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  /* Feedback form */
+  .fb {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .fb-input {
+    width: 100%;
+    resize: vertical;
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-button);
+    padding: var(--space-3);
+    font: inherit;
+    font-size: 14px;
+  }
+  .fb-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .fb-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+  }
+  .fb-err {
+    color: var(--error);
+    font-size: 13px;
   }
   .confirm {
     display: flex;

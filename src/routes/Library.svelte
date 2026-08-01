@@ -7,6 +7,7 @@
     type Mastery,
   } from '../db/queries';
   import AudioButton from '../ui/AudioButton.svelte';
+  import AudioText from '../ui/AudioText.svelte';
 
   type Mode = 'vocab' | 'sentences';
   type LevelFilter = 'all' | 'A1' | 'A2';
@@ -122,8 +123,10 @@
             {#if v.audioPath}<AudioButton src={v.audioPath} label="Play" />{/if}
             <div class="term">
               <span class="fr">
-                {#if GENDER_ARTICLE[v.gender]}<span class="art">{GENDER_ARTICLE[v.gender]}</span>{/if}
-                {v.fr}
+                <AudioText src={v.audioPath} label="Hear {v.fr}">
+                  {#if GENDER_ARTICLE[v.gender]}<span class="art">{GENDER_ARTICLE[v.gender]}</span>{/if}
+                  {v.fr}
+                </AudioText>
               </span>
             </div>
             <div class="meta">
@@ -148,7 +151,7 @@
           <li class="row sentence">
             {#if s.audioPath}<AudioButton src={s.audioPath} label="Play" />{/if}
             <div class="term">
-              <span class="fr">{s.fr}</span>
+              <span class="fr"><AudioText src={s.audioPath} label="Hear this sentence">{s.fr}</AudioText></span>
             </div>
             <div class="meta">
               <span class="en">{s.en}</span>

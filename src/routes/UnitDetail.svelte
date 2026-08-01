@@ -3,6 +3,7 @@
   import { matchPath } from '../ui/match';
   import Markdown from '../ui/Markdown.svelte';
   import AudioButton from '../ui/AudioButton.svelte';
+  import AudioText from '../ui/AudioText.svelte';
   import {
     getUnitById,
     getLessonsForUnit,
@@ -106,7 +107,7 @@
             <div class="vrow">
               <span class="vfr {genderClass(v.gender)}">
                 <AudioButton src={v.audio_path} label="Play «{v.lemma_fr}»" />
-                {v.lemma_fr}
+                <AudioText src={v.audio_path} label="Hear {v.lemma_fr}">{v.lemma_fr}</AudioText>
               </span>
               <span class="ven">{v.translation_en}</span>
             </div>
