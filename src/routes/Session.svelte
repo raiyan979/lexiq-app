@@ -80,33 +80,57 @@
     <div class="card note mono">Loading…</div>
   {:else if session.phase === 'empty'}
     <div class="card note">This unit has no exercises yet.</div>
+  {:else if session.phase === 'resume'}
+    <div class="card done">
+      <h1>Welcome back</h1>
+      <p class="score">You left this practice partway through.</p>
+      <div class="actions">
+        <button type="button" class="btn primary" onclick={() => session.resume()}>
+          Resume where I left off
+        </button>
+        <button type="button" class="btn" onclick={() => session.startOver()}>Start over</button>
+      </div>
+    </div>
   {:else if session.phase === 'done'}
     <div class="card done">
-      <Confetti />
-      <h1>Session complete</h1>
+      {#if session.passed}<Confetti />{/if}
+      <h1>{session.passed ? 'Session complete' : 'Not quite yet'}</h1>
       <p class="score">
         <span class="big mono">{session.correctCount}</span> / {session.total} correct
         <span class="pct mono">({accuracy}%)</span>
       </p>
-      {#if session.unlockedTitle}
-        <div class="unlock">
-          <span class="unlock-icon">🔓</span>
-          <span>New unit unlocked: <strong>{session.unlockedTitle}</strong></span>
-          <button
-            type="button"
-            class="btn"
-            onclick={() => session.unlockedUnitId !== null && navigate(`/learn/${session.unlockedUnitId}`)}
-          >
-            Go →
+      {#if session.passed}
+        {#if session.unlockedTitle}
+          <div class="unlock">
+            <span class="unlock-icon">🔓</span>
+            <span>New unit unlocked: <strong>{session.unlockedTitle}</strong></span>
+            <button
+              type="button"
+              class="btn"
+              onclick={() => session.unlockedUnitId !== null && navigate(`/learn/${session.unlockedUnitId}`)}
+            >
+              Go →
+            </button>
+          </div>
+        {/if}
+        <div class="actions">
+          <button type="button" class="btn primary" onclick={() => unitId !== null && session.load(unitId)}>
+            Practice again
           </button>
+          <button type="button" class="btn" onclick={backToUnit}>Back to unit</button>
+        </div>
+      {:else}
+        <p class="fail-hint">
+          You need more than {session.passPercent}% to move on. Give it another go — the questions
+          reshuffle each time.
+        </p>
+        <div class="actions">
+          <button type="button" class="btn primary" onclick={() => unitId !== null && session.load(unitId)}>
+            Try again
+          </button>
+          <button type="button" class="btn" onclick={backToUnit}>Back to unit</button>
         </div>
       {/if}
-      <div class="actions">
-        <button type="button" class="btn primary" onclick={() => unitId !== null && session.load(unitId)}>
-          Practice again
-        </button>
-        <button type="button" class="btn" onclick={backToUnit}>Back to unit</button>
-      </div>
     </div>
   {:else if view}
     <div class="card exercise">
@@ -332,6 +356,12 @@
     font-size: 40px;
     color: var(--accent);
     font-weight: 700;
+  }
+  .fail-hint {
+    color: var(--text-dim);
+    font-size: var(--reading-size);
+    margin: 0 auto var(--space-5);
+    max-width: 42ch;
   }
   .actions {
     display: flex;

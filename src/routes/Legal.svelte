@@ -34,6 +34,11 @@
         device.
       </li>
       <li>
+        <strong>Feedback is optional.</strong> If you use the feedback form in Settings, it opens
+        your own email app with a message addressed to the developer — you decide whether to send
+        it. {APP_NAME} itself never sends anything automatically.
+      </li>
+      <li>
         <strong>Children's privacy.</strong> Because {APP_NAME} collects no data at all, it collects
         no data from children. It is safe for learners of any age.
       </li>
