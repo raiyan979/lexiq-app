@@ -5,7 +5,14 @@
   import { getSetting, setSetting, resetProgress } from '../db/queries';
   import { stats } from '../ui/stats.svelte';
   import { navigate } from '../ui/router.svelte';
+  import { tour } from '../ui/tourState.svelte';
   import { getVersion } from '@tauri-apps/api/app';
+
+  /** Replay the first-run tour: reset its flag and jump home so targets show. */
+  function replayTour(): void {
+    tour.restart();
+    navigate('/');
+  }
 
   // App version for the About section, read from the Tauri build (tauri.conf.json).
   // Falls back to a static string in a plain browser preview where the API is absent.
@@ -264,6 +271,13 @@
         <span class="hint">How your data is handled (it stays on your device) and terms of use.</span>
       </div>
       <button type="button" class="btn" onclick={() => navigate('/legal')}>View</button>
+    </div>
+    <div class="row">
+      <div class="label">
+        <span class="name">App tour</span>
+        <span class="hint">Replay the quick walkthrough of the main sections.</span>
+      </div>
+      <button type="button" class="btn" onclick={replayTour}>Replay</button>
     </div>
   </div>
 </section>

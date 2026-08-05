@@ -26,4 +26,5 @@ export const STORAGE_KEYS = {
   audioEnabled: 'lexiq.audioEnabled',
   audience: 'lexiq.audience',
   onboarded: 'lexiq.onboarded',
+  tourDone: 'lexiq.tourDone',
 } as const;

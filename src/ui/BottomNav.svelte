@@ -30,6 +30,7 @@
       href={`#${item.path}`}
       class="tab"
       class:active
+      data-tour={item.path}
       aria-current={active ? 'page' : undefined}
       onclick={(e) => go(e, item.path)}
     >
