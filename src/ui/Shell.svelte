@@ -6,6 +6,8 @@
   import { router } from './router.svelte';
   import { matchPath } from './match';
   import { showBanner, hideBanner } from '../ads/ads';
+  import Tour from './Tour.svelte';
+  import { tour } from './tourState.svelte';
 
   // Resolve the current route from the hash. Falls back to the first route
   // (Dashboard) for unknown paths so a stray hash never blanks the screen.
@@ -52,6 +54,10 @@
     <BottomNav />
   </div>
 </div>
+
+{#if !tour.done}
+  <Tour />
+{/if}
 
 <style>
   .shell {

@@ -38,6 +38,7 @@
           href={`#${item.path}`}
           class="nav-item mono"
           class:active
+          data-tour={item.path}
           aria-current={active ? 'page' : undefined}
           title={layout.sidebarCollapsed ? item.label : undefined}
           onclick={(e) => go(e, item.path)}
