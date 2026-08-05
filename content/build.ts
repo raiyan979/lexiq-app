@@ -144,7 +144,14 @@ function main(): void {
   let exerciseCount = 0;
   let cardCount = 0;
 
+  // Course-order position (0-based) across all levels, used to keep the first
+  // few chapters keyboard-free.
+  let courseOrder = 0;
+  /** Chapters 1–3 (course order) contain no typing questions at all. */
+  const TYPING_FREE_CHAPTERS = 3;
   for (const unit of curriculum) {
+    const allowTyping = courseOrder >= TYPING_FREE_CHAPTERS;
+    courseOrder++;
     const orderIndex = levelOrder[unit.level]++;
     const unitId = claimId(unitIds, hashId(`unit:${unit.slug}`), `unit ${unit.slug}`);
     insUnit.run(
@@ -233,7 +240,7 @@ function main(): void {
     }
 
     // Exercises (generated + authored), resolving sentence/vocab links.
-    const exercises = generateExercisesForUnit(unit, EXERCISE_SEED + unitId);
+    const exercises = generateExercisesForUnit(unit, EXERCISE_SEED + unitId, allowTyping);
     for (const ex of exercises) {
       const sentenceId =
         ex.sentence_fr !== null ? (sentenceIdByText.get(ex.sentence_fr) ?? null) : null;

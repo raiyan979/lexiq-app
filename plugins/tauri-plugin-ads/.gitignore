@@ -1,0 +1,9 @@
+# Rust build output
+/target
+Cargo.lock
+
+# Android/Gradle build output and Tauri-generated glue
+/android/.tauri/
+/android/build/
+/android/.gradle/
+/android/.cxx/

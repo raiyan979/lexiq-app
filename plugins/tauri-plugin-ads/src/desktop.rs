@@ -19,4 +19,12 @@ impl<R: Runtime> Ads<R> {
     pub fn show_interstitial(&self) -> crate::Result<()> {
         Ok(())
     }
+
+    pub fn show_banner(&self) -> crate::Result<crate::BannerSize> {
+        Ok(crate::BannerSize { height: 0.0 })
+    }
+
+    pub fn hide_banner(&self) -> crate::Result<()> {
+        Ok(())
+    }
 }

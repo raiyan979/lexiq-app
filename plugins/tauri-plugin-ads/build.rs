@@ -1,4 +1,9 @@
-const COMMANDS: &[&str] = &["load_interstitial", "show_interstitial"];
+const COMMANDS: &[&str] = &[
+    "load_interstitial",
+    "show_interstitial",
+    "show_banner",
+    "hide_banner",
+];
 
 fn main() {
     tauri_plugin::Builder::new(COMMANDS)

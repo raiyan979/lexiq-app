@@ -295,6 +295,18 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the hide_banner command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-hide-banner",
+          "markdownDescription": "Enables the hide_banner command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the hide_banner command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-hide-banner",
+          "markdownDescription": "Denies the hide_banner command without any pre-configured scope."
+        },
+        {
           "description": "Enables the load_interstitial command without any pre-configured scope.",
           "type": "string",
           "const": "allow-load-interstitial",
@@ -305,6 +317,18 @@
           "type": "string",
           "const": "deny-load-interstitial",
           "markdownDescription": "Denies the load_interstitial command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the show_banner command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-show-banner",
+          "markdownDescription": "Enables the show_banner command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the show_banner command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-show-banner",
+          "markdownDescription": "Denies the show_banner command without any pre-configured scope."
         },
         {
           "description": "Enables the show_interstitial command without any pre-configured scope.",
@@ -319,10 +343,10 @@
           "markdownDescription": "Denies the show_interstitial command without any pre-configured scope."
         },
         {
-          "description": "Allows loading and showing interstitial ads.\n#### This default permission set includes:\n\n- `allow-load-interstitial`\n- `allow-show-interstitial`",
+          "description": "Allows loading and showing interstitial and banner ads.\n#### This default permission set includes:\n\n- `allow-load-interstitial`\n- `allow-show-interstitial`\n- `allow-show-banner`\n- `allow-hide-banner`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Allows loading and showing interstitial ads.\n#### This default permission set includes:\n\n- `allow-load-interstitial`\n- `allow-show-interstitial`"
+          "markdownDescription": "Allows loading and showing interstitial and banner ads.\n#### This default permission set includes:\n\n- `allow-load-interstitial`\n- `allow-show-interstitial`\n- `allow-show-banner`\n- `allow-hide-banner`"
         }
       ]
     }

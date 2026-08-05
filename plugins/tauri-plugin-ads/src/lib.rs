@@ -3,10 +3,18 @@
 //! is completely unaffected. The frontend gates all calls behind an
 //! `ADS_ENABLED` flag + platform + connectivity checks (see `src/ads/ads.ts`).
 
+use serde::{Deserialize, Serialize};
 use tauri::{
     plugin::{Builder, TauriPlugin},
     Manager, Runtime,
 };
+
+/// The banner's height in CSS pixels (dp), returned to the web layer so it can
+/// reserve exactly that much space above the native banner.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BannerSize {
+    pub height: f64,
+}
 
 #[cfg(desktop)]
 mod desktop;
@@ -39,7 +47,9 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
     Builder::new("ads")
         .invoke_handler(tauri::generate_handler![
             commands::load_interstitial,
-            commands::show_interstitial
+            commands::show_interstitial,
+            commands::show_banner,
+            commands::hide_banner
         ])
         .setup(|app, api| {
             #[cfg(mobile)]

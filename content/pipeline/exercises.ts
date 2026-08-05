@@ -290,19 +290,28 @@ const BUDGET = {
  * the same sentence may appear under different exercise types (cloze vs.
  * word-order), which drills a different skill each time.
  */
+/** Exercise types that require the keyboard — barred entirely from early units. */
+const TYPING_TYPES = new Set(['cloze', 'typed_translation', 'listening_dictation']);
+
 export function generateExercisesForUnit(
   unit: UnitDef,
   seed: number,
+  allowTyping = true,
 ): GeneratedExercise[] {
   const rng = mulberry32(seed);
   const out: GeneratedExercise[] = [];
   const vocabLemmas = new Set(unit.vocab.map((v) => v.lemma_fr.toLowerCase()));
 
+  // The first chapters are 100% tap-only (no keyboard). When typing is barred we
+  // redistribute those slots into extra tap-only questions so the pool still
+  // holds ~30, keeping every session a varied, keyboard-free subset.
+  const extra = allowTyping ? 0 : 2;
+
   // Vocab MC, both directions — distractors drawn from the rest of the vocab.
-  for (const v of shuffle(unit.vocab, rng).slice(0, BUDGET.mcEnFr)) {
+  for (const v of shuffle(unit.vocab, rng).slice(0, BUDGET.mcEnFr + extra)) {
     out.push(generateVocabMc(v, unit.vocab, rng));
   }
-  for (const v of shuffle(unit.vocab, rng).slice(0, BUDGET.mcFrEn)) {
+  for (const v of shuffle(unit.vocab, rng).slice(0, BUDGET.mcFrEn + extra)) {
     out.push(generateVocabMcReverse(v, unit.vocab, rng));
   }
 
@@ -320,30 +329,36 @@ export function generateExercisesForUnit(
   const take = (n: number): SentenceDef[] => shuffle(unit.sentences, rng).slice(0, n);
   const distractorPool = unit.vocab.map((v) => v.lemma_fr);
   // Tap-only: fill-the-blank as multiple choice (carries the early exercises).
-  for (const s of take(BUDGET.clozeMc)) {
+  for (const s of take(BUDGET.clozeMc + extra)) {
     const ex = generateClozeMc(s, vocabLemmas, distractorPool, rng);
     if (ex) out.push(ex);
   }
-  for (const s of take(BUDGET.wordOrder)) out.push(makeWordOrder(s));
+  for (const s of take(BUDGET.wordOrder + extra)) out.push(makeWordOrder(s));
   // Typing types (ordered last at runtime, so they never hit the first questions).
-  for (const s of take(BUDGET.cloze)) {
-    const cloze = makeCloze(s, vocabLemmas, rng);
-    if (cloze) out.push(cloze);
+  // Skipped entirely for early chapters, which stay 100% keyboard-free.
+  if (allowTyping) {
+    for (const s of take(BUDGET.cloze)) {
+      const cloze = makeCloze(s, vocabLemmas, rng);
+      if (cloze) out.push(cloze);
+    }
+    for (const s of take(BUDGET.typed)) out.push(makeTypedTranslation(s));
+    for (const s of take(BUDGET.dictation)) out.push(makeListeningDictation(s));
   }
-  for (const s of take(BUDGET.typed)) out.push(makeTypedTranslation(s));
-  for (const s of take(BUDGET.dictation)) out.push(makeListeningDictation(s));
 
-  // Prepend any hand-authored exercises so they take priority in ordering.
-  const authored: GeneratedExercise[] = (unit.exercises ?? []).map((e) => ({
-    type: e.type,
-    direction: e.direction ?? null,
-    prompt: e.prompt,
-    answer: e.answer,
-    accepted_alternatives: e.accepted_alternatives ?? null,
-    distractors: e.distractors ?? null,
-    sentence_fr: e.sentence_fr ?? null,
-    vocab_lemma: null,
-  }));
+  // Prepend any hand-authored exercises so they take priority in ordering. In
+  // typing-free chapters, drop any authored typed exercises too.
+  const authored: GeneratedExercise[] = (unit.exercises ?? [])
+    .filter((e) => allowTyping || !TYPING_TYPES.has(e.type))
+    .map((e) => ({
+      type: e.type,
+      direction: e.direction ?? null,
+      prompt: e.prompt,
+      answer: e.answer,
+      accepted_alternatives: e.accepted_alternatives ?? null,
+      distractors: e.distractors ?? null,
+      sentence_fr: e.sentence_fr ?? null,
+      vocab_lemma: null,
+    }));
 
   return [...authored, ...out];
 }

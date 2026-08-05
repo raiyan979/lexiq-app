@@ -16,19 +16,17 @@ import { invoke } from '@tauri-apps/api/core';
 const ADS_ENABLED = false;
 
 /*
- * Frequency, tuned to stay gentle (this is a kids' learning app — annoyance
- * costs retention). Three limits stack:
- *   - GRACE_SESSIONS: the first lessons are always ad-free, so a new learner
- *     gets real value before ever seeing an ad (better first impression, fewer
- *     early uninstalls).
- *   - CADENCE: after the grace period, at most one ad per this many lessons.
- *   - COOLDOWN_MS: never two ads within this window, so blitzing several short
- *     lessons in a row can't stack ads back-to-back.
+ * Frequency. Product decision: show an interstitial after every completed
+ * lesson. The knobs remain so cadence can be softened later without code
+ * changes:
+ *   - GRACE_SESSIONS: how many opening lessons are always ad-free.
+ *   - CADENCE: after the grace period, one ad per this many lessons (1 = every).
+ *   - COOLDOWN_MS: minimum gap between two ads (0 = no time gate).
  * All anchored to the session-complete screen — never mid-lesson.
  */
-const GRACE_SESSIONS = 2;
-const CADENCE = 3;
-const COOLDOWN_MS = 3 * 60_000;
+const GRACE_SESSIONS = 0;
+const CADENCE = 1;
+const COOLDOWN_MS = 0;
 const COUNT_KEY = 'lexiq.ads.sessionCount';
 const LAST_AD_KEY = 'lexiq.ads.lastShownAt';
 
@@ -54,6 +52,43 @@ async function showInterstitial(): Promise<void> {
   if (!adsActive()) return;
   try {
     await invoke('plugin:ads|show_interstitial');
+  } catch {
+    // ignore
+  }
+}
+
+/** CSS var the shell reads to shrink itself and reserve room for the banner. */
+const BANNER_VAR = '--ad-banner-height';
+
+function setBannerHeight(px: number): void {
+  if (typeof document !== 'undefined') {
+    document.documentElement.style.setProperty(BANNER_VAR, `${px}px`);
+  }
+}
+
+/**
+ * Show the bottom banner and reserve its height in the layout. No-op (and zero
+ * reserved height) unless ads are active, so desktop/offline is untouched.
+ */
+export async function showBanner(): Promise<void> {
+  if (!adsActive()) {
+    setBannerHeight(0);
+    return;
+  }
+  try {
+    const size = await invoke<{ height: number }>('plugin:ads|show_banner');
+    setBannerHeight(size?.height ?? 0);
+  } catch {
+    setBannerHeight(0);
+  }
+}
+
+/** Hide the banner and release its reserved space. */
+export async function hideBanner(): Promise<void> {
+  setBannerHeight(0);
+  if (!ON_ANDROID) return;
+  try {
+    await invoke('plugin:ads|hide_banner');
   } catch {
     // ignore
   }
