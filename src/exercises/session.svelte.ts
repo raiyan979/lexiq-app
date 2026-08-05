@@ -62,15 +62,32 @@ function shuffled<T>(items: readonly T[]): T[] {
 }
 
 /**
- * Order a unit's exercises for one session: all tap-only questions first
- * (multiple-choice, MC fill-the-blank, matching, word-order tiles), then the
- * typed ones last. Each group is shuffled, so the early questions are always a
- * varied, no-typing mix and the order still changes every attempt.
+ * How many questions one session presents, drawn from the unit's larger pool
+ * (~30). Keeping the pool bigger than the session means each attempt is a
+ * different, reshuffled subset — you never get the same 15 in the same order.
  */
-function orderForSession(views: ExerciseView[]): ExerciseView[] {
-  const tapOnly = views.filter((v) => !TYPING_TYPES.has(v.type));
-  const typing = views.filter((v) => TYPING_TYPES.has(v.type));
-  return [...shuffled(tapOnly), ...shuffled(typing)];
+const SESSION_SIZE = 15;
+
+/**
+ * Pick and order one session's exercises from a unit's pool. Draws a random
+ * SESSION_SIZE subset (so both the selection and the order change every
+ * attempt), with all tap-only questions first (multiple-choice, MC
+ * fill-the-blank, matching, word-order tiles) and the typed ones capped and
+ * pushed to the back — so the opening questions never require the keyboard.
+ */
+function selectSessionExercises(views: ExerciseView[]): ExerciseView[] {
+  const tapOnly = shuffled(views.filter((v) => !TYPING_TYPES.has(v.type)));
+  const typing = shuffled(views.filter((v) => TYPING_TYPES.has(v.type)));
+  const size = Math.min(SESSION_SIZE, views.length);
+  // At most ~a third of the session is typed, and only near the end.
+  let typingCount = Math.min(typing.length, Math.floor(size / 3));
+  let tapCount = size - typingCount;
+  if (tapCount > tapOnly.length) {
+    // Rare: too few tap-only to fill the front; backfill with typed ones.
+    tapCount = tapOnly.length;
+    typingCount = size - tapCount;
+  }
+  return [...tapOnly.slice(0, tapCount), ...typing.slice(0, typingCount)];
 }
 
 /** localStorage key holding an in-progress session for a unit (for resume). */
@@ -158,7 +175,7 @@ export class Session {
       this.phase = 'resume';
       return;
     }
-    this.#startWith(orderForSession(this.#loadedViews), 0, 0);
+    this.#startWith(selectSessionExercises(this.#loadedViews), 0, 0);
   }
 
   /** Continue the saved in-progress session (same order + position). */
@@ -174,7 +191,7 @@ export class Session {
       .map((id) => byId.get(id))
       .filter((v): v is ExerciseView => v !== undefined);
     // Guard against content having changed under the saved session.
-    if (ordered.length !== this.#loadedViews.length) {
+    if (ordered.length !== saved.orderIds.length) {
       this.startOver();
       return;
     }
@@ -185,7 +202,7 @@ export class Session {
   /** Discard any saved progress and start a fresh, reshuffled session. */
   startOver(): void {
     this.#clearSaved();
-    this.#startWith(orderForSession(this.#loadedViews), 0, 0);
+    this.#startWith(selectSessionExercises(this.#loadedViews), 0, 0);
   }
 
   #startWith(views: ExerciseView[], index: number, correctCount: number): void {
@@ -205,12 +222,16 @@ export class Session {
       const s = JSON.parse(raw) as SavedSession;
       // eslint-disable-next-line svelte/prefer-svelte-reactivity -- transient local set, not reactive state
       const ids = new Set(this.#loadedViews.map((v) => v.id));
-      const sameSet =
+      // A saved session is now a SESSION_SIZE subset of the pool; validate it's
+      // the right length and every id still exists (rejects stale full-length
+      // saves from before the 15-per-session change → they restart fresh).
+      const expectedLen = Math.min(SESSION_SIZE, ids.size);
+      const valid =
         Array.isArray(s.orderIds) &&
-        s.orderIds.length === ids.size &&
+        s.orderIds.length === expectedLen &&
         s.orderIds.every((id) => ids.has(id));
       // Only worth resuming from the second question onward.
-      if (!sameSet || typeof s.index !== 'number' || s.index < 1) return null;
+      if (!valid || typeof s.index !== 'number' || s.index < 1) return null;
       return s;
     } catch {
       return null;

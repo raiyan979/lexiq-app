@@ -15,9 +15,22 @@ import { invoke } from '@tauri-apps/api/core';
 /** Master switch. Flip to true only for the Play release with real ad IDs. */
 const ADS_ENABLED = false;
 
-/** Show an interstitial at most once per this many completed sessions. */
-const CADENCE = 2;
+/*
+ * Frequency, tuned to stay gentle (this is a kids' learning app — annoyance
+ * costs retention). Three limits stack:
+ *   - GRACE_SESSIONS: the first lessons are always ad-free, so a new learner
+ *     gets real value before ever seeing an ad (better first impression, fewer
+ *     early uninstalls).
+ *   - CADENCE: after the grace period, at most one ad per this many lessons.
+ *   - COOLDOWN_MS: never two ads within this window, so blitzing several short
+ *     lessons in a row can't stack ads back-to-back.
+ * All anchored to the session-complete screen — never mid-lesson.
+ */
+const GRACE_SESSIONS = 2;
+const CADENCE = 3;
+const COOLDOWN_MS = 3 * 60_000;
 const COUNT_KEY = 'lexiq.ads.sessionCount';
+const LAST_AD_KEY = 'lexiq.ads.lastShownAt';
 
 const ON_ANDROID =
   typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
@@ -47,16 +60,24 @@ async function showInterstitial(): Promise<void> {
 }
 
 /**
- * Call when a learning session completes. Counts completions and, every
- * `CADENCE` sessions, shows an interstitial then preloads the next one.
+ * Call when a learning session completes. Shows an interstitial only past the
+ * grace period, on the cadence, and outside the cooldown window — then keeps
+ * one preloaded for next time.
  */
 export async function onSessionComplete(): Promise<void> {
   if (!adsActive()) return;
   const n = (Number(localStorage.getItem(COUNT_KEY)) || 0) + 1;
   localStorage.setItem(COUNT_KEY, String(n));
-  if (n % CADENCE === 0) {
+
+  const pastGrace = n > GRACE_SESSIONS;
+  const onCadence = (n - GRACE_SESSIONS) % CADENCE === 0;
+  const lastAt = Number(localStorage.getItem(LAST_AD_KEY)) || 0;
+  const cooledDown = Date.now() - lastAt >= COOLDOWN_MS;
+
+  if (pastGrace && onCadence && cooledDown) {
     await showInterstitial();
+    localStorage.setItem(LAST_AD_KEY, String(Date.now()));
   }
-  // Always keep one loading so the next eligible boundary has an ad ready.
+  // Keep one loading so the next eligible boundary has an ad ready.
   void preloadInterstitial();
 }
