@@ -30,6 +30,7 @@ import {
   type IntervalPreview,
 } from '../scheduler/fsrs';
 import { gradeCard } from '../scheduler/queue';
+import { onSessionComplete } from '../ads/ads';
 import { stats } from '../ui/stats.svelte';
 import type { CardRow } from '../db/types';
 import type { Grade } from 'ts-fsrs';
@@ -378,6 +379,9 @@ export class Session {
       this.#clearSaved();
       this.passed = this.total > 0 && this.correctCount / this.total > PASS_THRESHOLD;
       this.phase = 'done';
+      // Session boundary: maybe show an interstitial (Android + online + flag on;
+      // no-op otherwise). Never fires mid-lesson — only here, at the summary.
+      void onSessionComplete();
       if (this.passed) void this.#complete();
       return;
     }

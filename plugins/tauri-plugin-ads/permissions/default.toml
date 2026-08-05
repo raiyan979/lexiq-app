@@ -1,0 +1,5 @@
+"$schema" = "schemas/schema.json"
+
+[default]
+description = "Allows loading and showing interstitial ads."
+permissions = ["allow-load-interstitial", "allow-show-interstitial"]

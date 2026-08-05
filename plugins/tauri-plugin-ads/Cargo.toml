@@ -1,0 +1,16 @@
+[package]
+name = "tauri-plugin-ads"
+version = "0.1.0"
+edition = "2021"
+authors = ["Raiyan Mirza"]
+description = "Child-directed, non-personalized AdMob interstitial ads for Croqui (Android only; no-op on desktop)."
+links = "tauri-plugin-ads"
+build = "build.rs"
+
+[dependencies]
+tauri = { version = "2" }
+serde = { version = "1", features = ["derive"] }
+thiserror = "2"
+
+[build-dependencies]
+tauri-plugin = { version = "2", features = ["build"] }

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!--
+          Google Mobile Ads requires the AdMob application ID as manifest
+          meta-data or it crashes on init. This is the official Google TEST
+          App ID; swap it for the real one (ca-app-pub-3320114820264652~8895634737)
+          at the Play Store release. Merged into the app manifest at build time.
+        -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713" />
+    </application>
+</manifest>
