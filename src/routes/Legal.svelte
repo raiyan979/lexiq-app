@@ -3,7 +3,7 @@
   import { APP_NAME } from '../config/constants';
 
   // Bump this whenever the wording below changes so users can see it's current.
-  const LAST_UPDATED = '30 July 2026';
+  const LAST_UPDATED = '4 August 2026';
 </script>
 
 <section class="view">
@@ -21,8 +21,14 @@
     <ul>
       <li><strong>No accounts.</strong> You never sign up or sign in. There is no login.</li>
       <li>
-        <strong>No network.</strong> {APP_NAME} works fully offline. It does not send any data to us
-        or to any third party, and it contains no analytics, tracking, or advertising.
+        <strong>Offline learning.</strong> {APP_NAME}'s course works fully offline. It has no
+        accounts, analytics, or tracking, and it does not send your learning data to us or to anyone
+        else.
+      </li>
+      <li>
+        <strong>Ads.</strong> This version of {APP_NAME} shows no ads. If a future update adds ads,
+        they will be non-personalized and appropriate for all ages, shown only while online — and
+        this policy and the app's Play Data Safety details will be updated before any ad appears.
       </li>
       <li>
         <strong>Your data stays on your device.</strong> Your learning progress, streak, and settings
@@ -34,14 +40,9 @@
         device.
       </li>
       <li>
-        <strong>Feedback is optional.</strong> If you tap "Share feedback" in Settings, {APP_NAME}
-        opens a short feedback form (hosted by Google Forms) in your browser. Only what you choose
-        to type into that form is submitted, and it goes to the form's private responses — {APP_NAME}
-        itself never sends anything automatically and asks for no personal details.
-      </li>
-      <li>
-        <strong>Children's privacy.</strong> Because {APP_NAME} collects no data at all, it collects
-        no data from children. It is safe for learners of any age.
+        <strong>Children's privacy.</strong> {APP_NAME} is built to be safe for all ages. It does not
+        collect personal information, and any future ads will be limited to non-personalized,
+        child-appropriate content.
       </li>
     </ul>
     <p class="fine">

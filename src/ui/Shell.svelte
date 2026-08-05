@@ -5,6 +5,7 @@
   import { routes } from './routes';
   import { router } from './router.svelte';
   import { matchPath } from './match';
+  import { showBanner, hideBanner } from '../ads/ads';
 
   // Resolve the current route from the hash. Falls back to the first route
   // (Dashboard) for unknown paths so a stray hash never blanks the screen.
@@ -18,6 +19,15 @@
 
   // Capitalized alias so the dynamic component can be used as a tag below.
   const RouteComponent = $derived(resolved.entry.component);
+
+  // The bottom banner shows everywhere except inside a live exercise, where the
+  // full screen is kept clear (no mis-taps, Play Families-friendly). No-op unless
+  // ads are enabled + Android + online.
+  const inPractice = $derived(resolved.entry.pattern === '/learn/:unitId/practice');
+  $effect(() => {
+    if (inPractice) void hideBanner();
+    else void showBanner();
+  });
 
   let mainEl: HTMLElement | undefined;
   function skipToContent(event: MouseEvent): void {
@@ -46,7 +56,9 @@
 <style>
   .shell {
     display: flex;
-    height: 100vh;
+    /* Shrink by the native banner's reserved height (0 when no banner), so the
+     * whole app — including the bottom nav — sits above the banner strip. */
+    height: calc(100vh - var(--ad-banner-height, 0px));
     overflow: hidden;
   }
   .main-col {

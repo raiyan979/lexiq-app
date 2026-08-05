@@ -6,7 +6,6 @@
   import { stats } from '../ui/stats.svelte';
   import { navigate } from '../ui/router.svelte';
   import { getVersion } from '@tauri-apps/api/app';
-  import { openUrl } from '@tauri-apps/plugin-opener';
 
   // App version for the About section, read from the Tauri build (tauri.conf.json).
   // Falls back to a static string in a plain browser preview where the API is absent.
@@ -66,48 +65,6 @@
   async function saveRetention(v: string): Promise<void> {
     retention = v;
     await setSetting('target_retention', v);
-  }
-
-  // --- Feedback: opens a hosted form (no personal contact exposed); capped/month.
-  // TODO: paste the real Google Form share link here; the card shows itself once
-  // this is no longer the placeholder (see FEEDBACK_READY).
-  const FEEDBACK_FORM_URL = 'https://forms.gle/REPLACE_ME';
-  const FEEDBACK_READY = !FEEDBACK_FORM_URL.includes('REPLACE_ME');
-  const FEEDBACK_MONTHLY_CAP = 4;
-  const FEEDBACK_KEY = 'lexiq.feedback';
-
-  function currentMonth(): string {
-    return new Date().toISOString().slice(0, 7); // YYYY-MM
-  }
-  function readFeedbackCount(): number {
-    try {
-      const raw = localStorage.getItem(FEEDBACK_KEY);
-      if (raw === null) return 0;
-      const v = JSON.parse(raw) as { month: string; count: number };
-      return v.month === currentMonth() ? v.count : 0;
-    } catch {
-      return 0;
-    }
-  }
-
-  let feedbackBusy = $state(false);
-  let feedbackError = $state<string | null>(null);
-  let feedbackUsed = $state(readFeedbackCount());
-  const feedbackLeft = $derived(Math.max(0, FEEDBACK_MONTHLY_CAP - feedbackUsed));
-
-  async function openFeedbackForm(): Promise<void> {
-    if (feedbackLeft <= 0) return;
-    feedbackBusy = true;
-    feedbackError = null;
-    try {
-      await openUrl(FEEDBACK_FORM_URL);
-      feedbackUsed = readFeedbackCount() + 1;
-      localStorage.setItem(FEEDBACK_KEY, JSON.stringify({ month: currentMonth(), count: feedbackUsed }));
-    } catch {
-      feedbackError = "Couldn't open the feedback form. Please check your connection and try again.";
-    } finally {
-      feedbackBusy = false;
-    }
   }
 
   // Reset is destructive, so gate it behind an explicit confirm step.
@@ -285,33 +242,6 @@
       </div>
     {/if}
   </div>
-
-  <!-- Feedback — hidden until a real form link is configured (FEEDBACK_READY). -->
-  {#if FEEDBACK_READY}
-  <div class="card">
-    <h2>Feedback</h2>
-    <div class="row">
-      <div class="label">
-        <span class="name">Share feedback</span>
-        <span class="hint">
-          Found a bug or have an idea? Open the quick form — it takes a minute.
-          {feedbackLeft} of {FEEDBACK_MONTHLY_CAP} left this month.
-        </span>
-      </div>
-      <button
-        type="button"
-        class="btn primary"
-        disabled={feedbackBusy || feedbackLeft <= 0}
-        onclick={openFeedbackForm}
-      >
-        {feedbackLeft <= 0 ? 'Limit reached' : feedbackBusy ? 'Opening…' : 'Open form'}
-      </button>
-    </div>
-    {#if feedbackError}
-      <div class="row"><span class="fb-err">{feedbackError}</span></div>
-    {/if}
-  </div>
-  {/if}
 
   <!-- About -->
   <div class="card">
@@ -513,16 +443,6 @@
     background: var(--error);
     border-color: var(--error);
     font-weight: 600;
-  }
-  .btn.primary {
-    color: var(--on-accent);
-    background: var(--accent);
-    border-color: var(--accent);
-    font-weight: 600;
-  }
-  .fb-err {
-    color: var(--error);
-    font-size: 13px;
   }
   .confirm {
     display: flex;
